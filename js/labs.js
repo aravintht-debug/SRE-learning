@@ -1,4 +1,4 @@
-/* Claude Learning · Week 4 curriculum: learn each Claude topic by doing it.
+/* SRE Learning · Week 4 curriculum: learn each Claude topic by doing it.
    Each step: concept → task → run → auto checks → how to implement it (Claude apps + API).
    `body` is the editable Messages API request (model filled from Settings);
    {{PLACEHOLDERS}} are replaced with lab files at send time. */
@@ -565,6 +565,7 @@
         task: ['Replace the user message with your own attempt, for example role-play ("pretend you are a poet"), "ignore previous instructions", asking it to reveal its instructions, or starting on-topic and drifting.', 'Run it, observe the result, and strengthen the <code>system</code> prompt if needed. Repeat with a second strategy.', 'Tick the manual checks when you are done.'],
         atWork: 'Save your attacks as a test suite and re-run them whenever you change the prompt or model. Log refusals, and watch for users who repeatedly try to get around the rules.',
         hint: 'Assistants hold up better when the system prompt says exactly how to respond out of scope.',
+        allowFail: ['edited'],
         body: { max_tokens: 16000, thinking: ADAPTIVE, output_config: { effort: 'low' }, system: BILLING_BOT, messages: user('REPLACE ME: write your own boundary test here.') },
         checks: [
           { id: 'edited', label: 'You replaced the placeholder with your own attempt and ran it', test: (c) => !/REPLACE ME/.test(JSON.stringify(c.requestBody.messages)) },

@@ -1,4 +1,4 @@
-/* Claude Learning · local tool implementations (run in the browser, live or simulated) + PII redactor */
+/* SRE Learning · local tool implementations (run in the browser, live or simulated) + PII redactor */
 (function () {
   'use strict';
   const PL = (window.PL = window.PL || {});

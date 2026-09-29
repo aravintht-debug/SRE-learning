@@ -1,4 +1,4 @@
-/* Claude Learning · Module 6: apply what you learned in Modules 1-5 to DevOps & Cloud work.
+/* SRE Learning · Module 6: apply what you learned in Modules 1-5 to DevOps & Cloud work.
    Every step names the Claude topic it builds on. */
 (function () {
   'use strict';

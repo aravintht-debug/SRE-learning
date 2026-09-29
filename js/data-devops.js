@@ -1,4 +1,4 @@
-/* Claude Learning · Module 6 datasets: DevOps & Cloud scenarios (all synthetic) */
+/* SRE Learning · Module 6 datasets: DevOps & Cloud scenarios (all synthetic) */
 (function () {
   'use strict';
   const PL = (window.PL = window.PL || {});

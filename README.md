@@ -1,66 +1,61 @@
-# Claude Learning · Week 4: Prompting
+# SRE Learning · Site Reliability Engineer programme (20 weeks)
 
-KodeKloud-style, hands-on labs for learning Claude, followed by labs that apply what you learned to **DevOps & Cloud** work.
-The whole site is plain static files (HTML + Tailwind CDN + vanilla JS) with no build step, so it can be hosted for free on GitHub Pages or Vercel.
+KodeKloud-style, hands-on learning for SwiftAnt's 20-week SRE programme. Every topic:
 
-Each lab step uses a split-pane workspace:
+1. **Teaches the topic from the official docs.** Short concept cards link straight to Anthropic, Microsoft Learn, HashiCorp, Elastic, Wazuh, Grafana, Google SRE, and other official pages.
+2. **Is hands-on in Claude.** You get copy-ready prompts for claude.ai, Claude Code, Cowork, and Claude for Excel/Word/PowerPoint, plus an in-site API playground whose checks validate Claude's output automatically.
+3. **Shows how to leverage Claude for it in a DevOps / Cloud role.** Every topic has "leverage" cards and every step ends with how to use the pattern at work.
 
-- **Left pane:** the scenario, your task, live ✓/✗ checks, and an "Implement it" box.
-- **Right pane:** an editable Claude API request, cURL / Python / TypeScript snippets with copy, and streamed output with the tool loop.
+The Azure certification track is **AZ-104** (Microsoft Azure Administrator), mapped onto the programme's certification slots. The whole site is plain static files (HTML, Tailwind CDN, vanilla JS) with no build step.
 
-## Curriculum
+## The 20 weeks
 
-| # | Module | Hands-on labs | Free sources |
-|---|---|---|---|
-| 1 | Claude Advanced Features | Extended thinking, effort, tool use, writing a tool, documents + citations, structured outputs, Projects in the Claude apps | Claude Help Center; Anthropic docs (tool use, files, extended thinking) |
-| 2 | Claude Practical Applications | The 4D framework (Delegation, Description, Discernment, Diligence) on the **June 2026 Azure billing dataset**, plus the ticket routing and grounded support assistant use cases | Anthropic Academy *AI Fluency*; docs use case guides |
-| 3 | Claude Advanced Prompting & Ethical Considerations | Hallucination, knowledge cutoff, working memory, few-shot steering, prompt injection, scope limits, the Usage Policy high-risk requirements, red-teaming | Academy *AI Capabilities and Limitations*; Anthropic Usage Policy |
-| 4 | First Look: Claude Security | Trust Center vendor review, app privacy controls, API key security, PII redaction, data privacy review | Anthropic Trust Center; Help Center / Privacy Center |
-| 5 | AI Fluency: Explore Responsible AI | Bias checks, honesty (refusing deception), human-in-the-loop design, transparency | AI Fluency courses; Usage Policy |
-| 6 | **Apply it: Claude for DevOps & Cloud** | K8s incident RCA, a ChatOps tool loop, a guarded scale tool, Terraform plan review, CI triage, runbooks, log injection, PR secret scan, IAM least-privilege review, AI script review, change requests | Builds on Modules 1–5 |
+| Weeks | Stream | Focus |
+|---|---|---|
+| 1–4 | Prompting | Claude foundations, prompting, Cowork, Claude for Microsoft 365, AI Fluency, Projects, advanced features, practical applications, ethics and the Usage Policy, Claude security, responsible AI · AZ-104: orientation, identities, governance, storage |
+| 5–6 | Root cause | 5 Whys, fishbone and causal chains, blameless postmortems, SLOs, error budgets and burn-rate alerting |
+| 7–12 | Role-critical | Terraform on Azure and Proxmox with drift detection, Entra ID governance (PIM, access reviews, JML), Claude Code, backup and restore (Azure Backup, Proxmox Backup Server, Percona Backup for MongoDB), Claude Code governance, Key Vault, SLO dashboards, Elastic Security, compromise recovery · AZ-104: compute, containers, App Service, networking, monitoring |
+| 13–18 | Agentification | Managed Agents, computer use, the Microsoft agent ecosystem, bounded ops agents, multi-agent systems, advanced Claude Code (hooks, subagents, headless), Skills, Claude Code in GitHub Actions, Grafana/OTel/Sloth, Wazuh, the Agent SDK, FinOps · AZ-104: backup and Site Recovery, reviews, final cram |
+| 19–20 | Adoption | Advanced prompt engineering, the AZ-104 exam window, handing your agent and prompt pack to another pod, the evidence portfolio, your Claude operating model |
 
-In total there are 42 steps. There is also a **DevOps & Cloud setup guide** in the app, and an implementation kit in [`work-kit/`](work-kit/README.md).
+Every week shows its applied task, its milestone (evidence ID, reviewer, pass criterion), and any internal SwiftAnt Academy sessions.
 
 ## Two modes
 
-- **Simulated (default, no key):** pre-recorded responses stream in, while the local tools, redaction, and checks run for real.
-- **Live:** open ⚙ Settings and paste your own Anthropic API key. Calls go **directly from your browser to `api.anthropic.com`**, and a Content-Security-Policy blocks every other destination. The key is kept in `sessionStorage` (or in `localStorage` only if you tick "remember"). Use a key with a spend limit. This pattern is for personal learning only: team or production apps should call Claude from a backend.
-
-The default model is `claude-opus-5-5`, and Sonnet 5.5 and Haiku 4.5 can be selected. Requests use adaptive thinking, `output_config.effort`, structured outputs, and strict tools. The server-side refusal fallback can be turned off in Settings.
+- **Simulated (default, no key):** pre-recorded expert responses stream in. Local tools, redaction, and checks all run for real.
+- **Live:** paste your own Anthropic API key in ⚙ Settings. Calls go directly from your browser to `api.anthropic.com` only, and the Content-Security-Policy blocks every other destination. The key stays in session storage unless you tick "remember". Use a key with a spend limit. This pattern is for personal learning; team apps should call Claude from a backend.
 
 ## Run locally
 
 ```bash
 npx serve .            # or: python -m http.server 8080
+node tests/validate.js # validates every week, topic and step (also runs in CI before deploy)
 ```
 
-## Deploy for free
+## Content validation
 
-- **GitHub Pages:** push to `main`, then set **Settings → Pages → Source** to **GitHub Actions**. The included workflow deploys the site to `https://<user>.github.io/claude-learning/`.
-- **Vercel:** import the repo with preset **Other**, no build command, and output directory `.`. You can also run `npx vercel --prod`.
-- **Custom subdomain:** add the DNS record `CNAME learn → <user>.github.io` (or the value Vercel shows), then set the domain in Pages or Vercel settings and turn on HTTPS. See `CNAME.example`.
-
-Full steps are on the in-app **Deployment Hub** page. After forking, set your GitHub username in `js/config.js`.
+`tests/validate.js` loads the site headlessly and fails if any of these rules are broken:
+- a topic lacks concept cards, official sources, leverage items, a quiz, or a "Do it in Claude" step
+- an API step's simulated run doesn't pass its own checks (tools run exactly as in the browser)
+- a structured-output schema isn't strict
+- content mentions frameworks or certifications that are out of scope for this programme (see the rule list in `tests/validate.js`)
 
 ## Project structure
 
 ```
 index.html              app shell, settings modal, CSP
-css/styles.css          component styles
-js/config.js            your GitHub owner/repo
-js/util.js              escaping, safe storage, markdown renderer
-js/data.js              Module 1-5 datasets (incl. June 2026 Azure billing CSV)
-js/data-devops.js       Module 6 datasets (K8s, Terraform, CI, IAM…)
-js/tools.js             local tools (calculator, FX, orders, mock kubectl) + PII redactor
+js/program.js           week registry + shared request builders
+js/checks.js            check helpers shared by the app and the validator
+js/weeks/weekNN.js      one file per week (topics, briefings, hands-on steps)
+js/labs.js, labs-devops.js   week 4 modules (Claude in depth + DevOps application)
 js/claude.js            Messages API client (SSE streaming, simulation, model normalization)
-js/labs.js              Modules 1-5
-js/labs-devops.js       Module 6
-js/deploy.js            Deployment Hub + DevOps & Cloud setup guide
-js/app.js               router, views, playground, checks, progress
+js/tools.js             local tools for tool-use labs + PII redactor
+js/app.js               router, roadmap, week/topic/step views, playground, progress
+tests/validate.js       content validator
 work-kit/               Python scripts + GitHub Actions example for real pipelines
 ```
 
-All datasets are synthetic. The lesson text is original and links to Anthropic's free resources; no course content is copied.
+All datasets are synthetic. Lesson text is original and links to official, free documentation. No course content is copied.
 
 ## License
 

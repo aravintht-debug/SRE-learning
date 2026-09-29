@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://api.anthropic.com; img-src 'self' data:; base-uri 'self'; form-action 'none'; object-src 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://api.anthropic.com https://*.supabase.co wss://*.supabase.co; img-src 'self' data:; base-uri 'self'; form-action 'none'; object-src 'none'">
   <meta name="referrer" content="no-referrer">
-  <title>Claude Learning · Week 4</title>
-  <meta name="description" content="Claude Learning: hands-on, KodeKloud-style labs for Week 4 Prompting (advanced features, practical applications, prompting and ethics, security, responsible AI), then applied to DevOps and Cloud.">
+  <title>SRE Learning · 20-week programme</title>
+  <meta name="description" content="SRE Learning: KodeKloud-style, hands-on labs for the 20-week Site Reliability Engineer programme. Learn each topic from the official docs, do it in Claude, and leverage Claude in a DevOps / Cloud role. AZ-104 track.">
   <meta name="color-scheme" content="dark">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,10 +21,10 @@
     <header class="app-header">
       <button class="btn-icon lg:hidden" data-action="toggle-sidebar" aria-label="Toggle navigation">☰</button>
       <a href="#/" class="flex items-center gap-2.5 min-w-0">
-        <span class="logo">C</span>
+        <span class="logo">S</span>
         <span class="min-w-0 leading-tight">
-          <span class="block font-extrabold text-white tracking-tight">Claude Learning</span>
-          <span class="block text-[11px] text-slate-400 truncate">Week 4 · Prompting</span>
+          <span class="block font-extrabold text-white tracking-tight">SRE Learning</span>
+          <span class="block text-[11px] text-slate-400 truncate">20 weeks · hands-on with Claude</span>
         </span>
       </a>
       <div class="hidden md:flex items-center gap-3 ml-6 flex-1 max-w-xs">
@@ -32,6 +32,7 @@
         <span id="progress-text" class="text-xs text-slate-400 whitespace-nowrap"></span>
       </div>
       <div class="ml-auto flex items-center gap-2">
+        <button id="auth-btn" class="mode-pill hidden" data-action="auth" title="Sign in to sync progress"></button>
         <button id="mode-pill" class="mode-pill" data-action="settings" title="API settings"></button>
         <a id="repo-link" class="btn-icon hidden sm:grid" href="#/deploy" title="Source code" target="_blank" rel="noopener noreferrer">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
@@ -96,16 +97,63 @@
     </div>
   </div>
 
+  <!-- Sign in (only shown when login is configured in js/config.js) -->
+  <div id="auth" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="auth-title">
+    <div class="modal-card">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="auth-title" class="text-lg font-bold text-white">Sign in to sync your progress</h2>
+        <button class="btn-icon" data-action="close-auth" aria-label="Close">✕</button>
+      </div>
+      <div id="auth-signed-out">
+        <p class="text-sm text-slate-400 mb-3">Enter the email you were invited with. We send a one-time sign-in link; no password needed. Your progress then follows you across devices, and the team can see each other's progress.</p>
+        <label class="field-label" for="auth-email">Email</label>
+        <input id="auth-email" type="email" class="field" placeholder="you@company.com" autocomplete="email">
+        <div class="flex justify-end mt-4"><button class="btn-primary btn-sm" data-action="auth-send">Send sign-in link</button></div>
+      </div>
+      <div id="auth-signed-in" hidden>
+        <p class="text-sm text-slate-300">Signed in as <b id="auth-who" class="text-white"></b>. Progress syncs automatically.</p>
+        <p class="text-xs text-slate-500 mt-2">Your Claude API key is never synced; it stays in this browser.</p>
+        <div class="flex justify-end mt-4"><button class="btn-ghost btn-sm" data-action="auth-signout">Sign out</button></div>
+      </div>
+      <div id="auth-status" class="text-sm mt-3 min-h-[1.25rem]"></div>
+    </div>
+  </div>
+
   <div id="toast" hidden role="status" aria-live="polite"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/config.js"></script>
   <script src="js/util.js"></script>
   <script src="js/data.js"></script>
   <script src="js/data-devops.js"></script>
   <script src="js/tools.js"></script>
   <script src="js/claude.js"></script>
+  <script src="js/checks.js"></script>
+  <script src="js/program.js"></script>
   <script src="js/labs.js"></script>
   <script src="js/labs-devops.js"></script>
+  <script src="js/weeks/week01.js"></script>
+  <script src="js/weeks/week02.js"></script>
+  <script src="js/weeks/week03.js"></script>
+  <script src="js/weeks/week04.js"></script>
+  <script src="js/weeks/week04-az104.js"></script>
+  <script src="js/weeks/week05.js"></script>
+  <script src="js/weeks/week06.js"></script>
+  <script src="js/weeks/week07.js"></script>
+  <script src="js/weeks/week08.js"></script>
+  <script src="js/weeks/week09.js"></script>
+  <script src="js/weeks/week10.js"></script>
+  <script src="js/weeks/week11.js"></script>
+  <script src="js/weeks/week12.js"></script>
+  <script src="js/weeks/week13.js"></script>
+  <script src="js/weeks/week14.js"></script>
+  <script src="js/weeks/week15.js"></script>
+  <script src="js/weeks/week16.js"></script>
+  <script src="js/weeks/week17.js"></script>
+  <script src="js/weeks/week18.js"></script>
+  <script src="js/weeks/week19.js"></script>
+  <script src="js/weeks/week20.js"></script>
+  <script src="js/sync.js"></script>
   <script src="js/deploy.js"></script>
   <script src="js/app.js"></script>
 </body>

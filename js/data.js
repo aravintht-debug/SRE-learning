@@ -1,4 +1,4 @@
-/* Claude Learning · lab datasets and documents (all synthetic) */
+/* SRE Learning · lab datasets and documents (all synthetic) */
 (function () {
   'use strict';
   const PL = (window.PL = window.PL || {});

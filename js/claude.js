@@ -1,4 +1,4 @@
-/* Claude Learning · Claude Messages API client for the browser (raw fetch + SSE; no build step) */
+/* SRE Learning · Claude Messages API client for the browser (raw fetch + SSE; no build step) */
 (function () {
   'use strict';
   const PL = (window.PL = window.PL || {});

@@ -1,12 +1,19 @@
-/* Claude Learning · app shell: routing, views, playground, checks, progress */
+/* SRE Learning · app shell: routing, views, playground, checks, progress */
 (function () {
   'use strict';
   const PL = window.PL;
   const { esc, store, copyText, toast, md, $, $$, fmtNum } = PL.util;
-  const MODS = PL.CURRICULUM.modules;
+  const WEEKS = PL.PROGRAM.weeks;
+  const MODS = [];
+  WEEKS.forEach((w) => w.topics.forEach((t, i) => { t.week = w.week; t.tnum = i + 1; MODS.push(t); }));
   const STEP_INDEX = {};
   MODS.forEach((m) => m.steps.forEach((s, i) => { STEP_INDEX[s.id] = { step: s, mod: m, idx: i }; }));
   const TOTAL_STEPS = Object.keys(STEP_INDEX).length;
+  const weekOf = (n) => WEEKS.find((w) => w.week === n);
+  const topicLabel = (m) => 'Week ' + m.week + ' · Topic ' + m.tnum;
+  const weekSteps = (w) => w.topics.reduce((a, t) => a + t.steps.length, 0);
+  const weekDone = (w) => w.topics.reduce((a, t) => a + modDone(t), 0);
+  const streamChip = (key) => { const s = PL.STREAMS[key] || { label: key, color: '#64748b' }; return '<span class="stream-chip" style="--c:' + s.color + '">' + esc(s.label) + '</span>'; };
 
   const S = {
     progress: Object.assign({ steps: {}, manual: {}, quiz: {}, seen: {} }, store.get('pl.progress', {})),
@@ -21,32 +28,10 @@
     leftPct: store.get('pl.leftPct', 44),
     route: null,
   };
-  const saveProgress = () => store.set('pl.progress', S.progress);
+  const saveProgress = () => { store.set('pl.progress', S.progress); if (PL.sync) PL.sync.push(S.progress); };
 
   /* ---------------- check helpers (passed to every check as `h`) ---------------- */
-  const textOf = (m) => ((m && m.content) || []).filter((b) => b.type === 'text').map((b) => b.text || '').join('');
-  const H = {
-    text: (c) => textOf(c.final),
-    all: (c) => c.turns.map(textOf).join('\n'),
-    json(c) {
-      if (c._json !== undefined) return c._json;
-      const t = textOf(c.final).trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
-      try { c._json = JSON.parse(t); } catch (e) { c._json = null; }
-      return c._json;
-    },
-    nums: (s) => (String(s).match(/-?\d[\d,]*\.?\d*/g) || []).map((x) => parseFloat(x.replace(/,/g, ''))).filter((n) => !isNaN(n)),
-    near: (s, target, tol) => H.nums(s).some((n) => Math.abs(n - target) <= tol),
-    calls: (c, name) => c.toolCalls.filter((x) => x.name === name),
-    thinking: (c) => c.turns.some((t) => t.content.some((b) => b.type === 'thinking' || b.type === 'redacted_thinking')),
-    cited: (c) => c.turns.some((t) => t.content.some((b) => b.type === 'text' && Array.isArray(b.citations) && b.citations.length)),
-    sentTool: (c, name) => (c.sentBody.tools || []).find((t) => t.name === name),
-    memory: (id) => S.memory[id],
-    sev(c, id) { const j = H.json(c); const x = j && (j.classifications || []).find((k) => k.id === id); return x && x.severity; },
-    piiSent: (c, type) => PL.pii.detect(JSON.stringify(c.sentBody.messages)).some((p) => p.type === type),
-    route(c, id) { const j = H.json(c); const x = j && (j.routes || []).find((k) => k.id === id); return x && x.category; },
-    label(c, id) { const j = H.json(c); const x = j && (j.results || []).find((k) => k.id === id); return x && x.sentiment; },
-    findingMatches(c, re) { const j = H.json(c); return !!j && (j.findings || []).some((f) => re.test([f.command, f.risk, f.safer_alternative].join(' '))); },
-  };
+  const H = PL.makeHelpers(S.memory);
 
   function evalChecks(step) {
     const ctx = S.results[step.id];
@@ -76,6 +61,7 @@
     const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
     if (parts[0] === 'deploy') return { view: 'deploy' };
     if (parts[0] === 'kit') return { view: 'kit' };
+    if (parts[0] === 'w') { const w = weekOf(parseInt(parts[1], 10)); return w ? { view: 'week', wk: w } : { view: 'home' }; }
     if (parts[0] === 'm') {
       const mod = MODS.find((m) => m.id === parts[1]);
       if (!mod) return { view: 'home' };
@@ -123,19 +109,25 @@
     const r = S.route || {};
     const activeMod = r.mod && r.mod.id;
     const link = (href, label, active, extra) => '<a href="' + href + '" class="side-link ' + (active ? 'active' : '') + '">' + (extra || '') + '<span class="truncate">' + label + '</span></a>';
-    let html = link('#/', 'Dashboard', r.view === 'home', '<span class="ico">⌂</span>');
-    html += '<div class="side-label">Learn · Claude topics</div>';
-    MODS.forEach((m) => {
-      if (m.id === 'm6') html += '<div class="side-label">Apply · DevOps &amp; Cloud</div>';
-      const open = m.id === activeMod;
-      const done = modDone(m);
+    let html = link('#/', 'Dashboard · 20-week roadmap', r.view === 'home', '<span class="ico">⌂</span>');
+    const activeWeek = r.wk ? r.wk.week : r.mod ? r.mod.week : null;
+    let lastStream = null;
+    WEEKS.forEach((w) => {
+      if (w.stream !== lastStream) { html += '<div class="side-label">' + esc((PL.STREAMS[w.stream] || {}).label || w.stream) + '</div>'; lastStream = w.stream; }
+      const open = w.week === activeWeek;
+      const total = weekSteps(w), done = weekDone(w);
       html += '<details class="side-mod" ' + (open ? 'open' : '') + '><summary class="' + (open ? 'text-white' : '') + '">' +
-        '<span class="num ' + (done === m.steps.length ? 'num-done' : '') + '">' + (done === m.steps.length ? '✓' : m.num) + '</span>' +
-        '<span class="flex-1 min-w-0 leading-snug">' + esc(m.title) + '</span><span class="text-[11px] text-slate-500 shrink-0">' + done + '/' + m.steps.length + '</span></summary><div class="side-steps">' +
-        link('#/m/' + m.id, 'Briefing', r.view === 'brief' && open, '<span class="ico">▤</span>') +
-        m.steps.map((s, i) => link('#/m/' + m.id + '/lab/' + (i + 1), esc(s.title), r.view === 'lab' && r.step && r.step.id === s.id,
-          '<span class="ico ' + (S.progress.steps[s.id] ? 'text-emerald-400' : 'text-slate-500') + '">' + (S.progress.steps[s.id] ? '✓' : (i + 1)) + '</span>')).join('') +
-        '</div></details>';
+        '<span class="num ' + (total && done === total ? 'num-done' : '') + '">' + (total && done === total ? '✓' : w.week) + '</span>' +
+        '<span class="flex-1 min-w-0 leading-snug">' + esc(w.title) + '</span><span class="text-[11px] text-slate-500 shrink-0">' + done + '/' + total + '</span></summary><div class="side-steps">' +
+        link('#/w/' + w.week, 'Week ' + w.week + ' overview', r.view === 'week' && open, '<span class="ico">▤</span>');
+      w.topics.forEach((m) => {
+        const mOpen = m.id === activeMod;
+        const md = modDone(m);
+        html += link('#/m/' + m.id, esc(m.title), r.view === 'brief' && mOpen, '<span class="ico ' + (md === m.steps.length ? 'text-emerald-400' : 'text-slate-500') + '">' + (md === m.steps.length ? '✓' : '•') + '</span>');
+        if (mOpen) html += '<div class="side-sub">' + m.steps.map((s, i) => link('#/m/' + m.id + '/lab/' + (i + 1), esc(s.title), r.view === 'lab' && r.step && r.step.id === s.id,
+          '<span class="ico ' + (S.progress.steps[s.id] ? 'text-emerald-400' : 'text-slate-500') + '">' + (S.progress.steps[s.id] ? '✓' : (i + 1)) + '</span>')).join('') + '</div>';
+      });
+      html += '</div></details>';
     });
     html += '<div class="side-label">Ship it</div>';
     html += link('#/kit', 'DevOps &amp; Cloud setup guide', r.view === 'kit','<span class="ico">⚒</span>');
@@ -149,9 +141,10 @@
     const main = $('#view');
     if (v === 'lab') { main.innerHTML = labView(S.route); afterLabRender(S.route.step); return; }
     main.innerHTML = '<div class="h-full overflow-y-auto" id="scroller">' +
-      (v === 'brief' ? briefView(S.route.mod) : v === 'deploy' ? PL.deployView() : v === 'kit' ? PL.kitView() : homeView()) + '</div>';
+      (v === 'brief' ? briefView(S.route.mod) : v === 'week' ? weekView(S.route.wk) : v === 'deploy' ? PL.deployView() : v === 'kit' ? PL.kitView() : homeView()) + '</div>';
     if (v === 'brief') { S.progress.seen[S.route.mod.id] = true; saveProgress(); }
-    document.title = (v === 'brief' ? S.route.mod.title + ' · ' : v === 'deploy' ? 'Deployment Hub · ' : v === 'kit' ? 'DevOps & Cloud setup guide · ' : '') + 'Claude Learning · Week 4';
+    if (v === 'home' && PL.renderTeam) PL.renderTeam();
+    document.title = (v === 'brief' ? S.route.mod.title + ' · ' : v === 'week' ? 'Week ' + S.route.wk.week + ' · ' : v === 'deploy' ? 'Deployment Hub · ' : v === 'kit' ? 'DevOps & Cloud setup guide · ' : '') + 'SRE Learning · SRE Programme';
   }
 
   function homeView() {
@@ -160,26 +153,48 @@
     const live = PL.settings.isLive();
     return '<div class="max-w-6xl mx-auto px-4 sm:px-8 py-8 sm:py-10">' +
       '<section class="hero rounded-2xl p-6 sm:p-10 mb-8">' +
-      '<div class="text-xs font-semibold tracking-widest text-accent-400 uppercase mb-3">Week 4 · Prompting · Hands-on</div>' +
-      '<h1 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight max-w-3xl">Claude Learning: learn it hands-on, then apply it to DevOps &amp; Cloud</h1>' +
-      '<p class="mt-3 text-slate-300 max-w-2xl"><b class="text-white">Modules 1–5</b> teach each Claude topic by doing it: advanced features, practical applications, prompting and ethics, security, and responsible AI. <b class="text-white">Module 6</b> applies those skills to real DevOps and cloud work, and the setup guide shows how to bring Claude into your pipelines.</p>' +
+      '<div class="text-xs font-semibold tracking-widest text-accent-400 uppercase mb-3">Site Reliability Engineer programme · 20 weeks · hands-on with Claude</div>' +
+      '<h1 class="text-3xl sm:text-4xl font-extrabold text-white leading-tight max-w-3xl">SRE Learning: learn every topic hands-on, and use Claude to do the work</h1>' +
+      '<p class="mt-3 text-slate-300 max-w-2xl">Each week follows the programme. Each topic has a short briefing built from the official docs, hands-on tasks you do <b class="text-white">in Claude</b> (claude.ai, Claude Code, or the built-in API playground), and a clear answer to <b class="text-white">how you leverage Claude for it in a DevOps / Cloud role</b>. The Azure track is <b class="text-white">AZ-104</b>.</p>' +
       '<div class="mt-6 flex flex-wrap gap-3">' +
       (next ? '<a class="btn-primary" href="#/m/' + next.m.id + '/lab/' + (next.i + 1) + '">' + (done ? 'Continue: ' : 'Start: ') + esc(next.s.title) + ' →</a>' : '<a class="btn-primary" href="#/deploy">All labs done 🎉 · Deploy your own copy →</a>') +
       '<button class="btn-ghost" data-action="settings">' + (live ? 'Live mode · change settings' : 'Connect your Claude API key (optional)') + '</button></div>' +
-      '<div class="mt-6 grid grid-cols-3 gap-3 max-w-md text-center">' +
-      stat(MODS.length, 'modules') + stat(TOTAL_STEPS, 'lab steps') + stat(done, 'completed') + '</div></section>' +
-      '<h2 class="section-title">Modules</h2><div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4 mb-10">' +
-      MODS.map((m) => '<a href="#/m/' + m.id + '" class="card card-hover p-5 flex gap-4 items-start">' + ring(modDone(m), m.steps.length, 44) +
-        '<div class="min-w-0"><div class="text-[11px] font-semibold text-brand-300 uppercase tracking-wider">Module ' + m.num + '</div><div class="font-bold text-white leading-snug mt-0.5">' + esc(m.title) + '</div>' +
-        '<p class="text-sm text-slate-400 mt-1.5">' + esc(m.blurb) + '</p><div class="text-xs text-slate-500 mt-2">' + m.steps.length + ' steps · ~' + m.steps.reduce((a, s) => a + s.minutes, 0) + ' min</div></div></a>').join('') + '</div>' +
-      '<h2 class="section-title">How each lab works</h2><div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">' +
-      [['1', 'Read the 2-minute briefing', 'Six concept cards per module. No long theory.'], ['2', 'Run the scenario', 'Edit the real API request on the right and press Run (Ctrl+Enter).'], ['3', 'Pass the checks', 'Auto-checks validate the output, tool calls, and even the outgoing payload.'], ['4', 'Implement it', 'Every step ends with how to use it in the Claude apps and the API. Module 6 and the setup guide apply it to DevOps & Cloud.']]
+      '<div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl text-center">' +
+      stat(WEEKS.length, 'weeks') + stat(MODS.length, 'topics') + stat(TOTAL_STEPS, 'hands-on steps') + stat(done, 'completed') + '</div></section>' +
+      '<h2 class="section-title">20-week roadmap</h2><div class="flex flex-wrap gap-2 mb-3">' + Object.keys(PL.STREAMS).map(streamChip).join('') + '</div>' +
+      '<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-10">' +
+      WEEKS.map((w) => '<a href="#/w/' + w.week + '" class="card card-hover p-4 flex gap-3 items-start">' + ring(weekDone(w), weekSteps(w), 40) +
+        '<div class="min-w-0"><div class="flex items-center gap-2 flex-wrap"><span class="text-[11px] font-bold text-slate-300">WEEK ' + w.week + '</span>' + streamChip(w.stream) + (w.milestone ? '<span class="text-accent-400 text-xs" title="Milestone">◆</span>' : '') + '</div>' +
+        '<div class="font-semibold text-white leading-snug mt-1 text-sm">' + esc(w.title) + '</div><div class="text-[11px] text-slate-500 mt-1">' + w.topics.length + ' topics · ' + weekSteps(w) + ' steps · ' + w.hours + 'h</div></div></a>').join('') + '</div>' +
+      '<div id="team"></div>' +
+      '<h2 class="section-title">How each topic works</h2><div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">' +
+      [['1', 'Briefing from the official docs', 'Concept cards summarizing the official documentation, with direct links. No long theory.'], ['2', 'Do it in Claude', 'Copy-ready prompts for claude.ai and Claude Code, or run the real API request in the playground.'], ['3', 'Pass the checks', 'Auto-checks validate Claude\'s output; manual checks confirm you did it in your own environment.'], ['4', 'Leverage it at work', 'Every topic ends with how a DevOps / Cloud engineer uses Claude for it day to day.']]
         .map((x) => '<div class="card p-5"><div class="w-8 h-8 rounded-lg bg-brand-500/15 text-brand-300 font-bold grid place-items-center mb-3">' + x[0] + '</div><div class="font-semibold text-white">' + x[1] + '</div><p class="text-sm text-slate-400 mt-1">' + x[2] + '</p></div>').join('') + '</div>' +
       '<div class="card p-5 sm:p-6 flex flex-col sm:flex-row gap-4 sm:items-center"><div class="flex-1"><div class="font-semibold text-white">' + (live ? 'Live mode is on' : 'You are in simulated mode') + '</div><p class="text-sm text-slate-400 mt-1">' +
       (live ? 'Requests go straight from this browser to api.anthropic.com with your key. The key is never sent anywhere else.' : 'Responses are pre-recorded, but tools, redaction, and checks run for real. Add your own Claude API key to make live calls. It stays in this browser (session storage by default).') +
       '</p></div><button class="btn-ghost shrink-0" data-action="settings">Settings</button></div>' +
       '</div>';
   }
+  function weekView(w) {
+    const ms = w.milestone;
+    return '<div class="max-w-5xl mx-auto px-4 sm:px-8 py-8">' +
+      '<nav class="text-xs text-slate-500 mb-3"><a href="#/" class="hover:text-slate-300">Dashboard</a> › Week ' + w.week + '</nav>' +
+      '<div class="flex flex-wrap items-center gap-2 mb-1"><span class="text-[11px] font-semibold text-brand-300 uppercase tracking-wider">Week ' + w.week + ' · ' + w.hours + ' hours</span>' + streamChip(w.stream) + '</div>' +
+      '<h1 class="text-2xl sm:text-3xl font-extrabold text-white">' + esc(w.title) + '</h1><p class="text-slate-400 mt-2">' + esc(w.focus || '') + '</p>' +
+      (w.topics[0] ? '<a class="btn-primary mt-5" href="#/m/' + w.topics[0].id + '">Start week ' + w.week + ' →</a>' : '') +
+      '<h2 class="section-title mt-8">Topics</h2><div class="card divide-y divide-white/5 mb-6">' +
+      w.topics.map((t, i) => '<a href="#/m/' + t.id + '" class="flex items-center gap-3 px-4 py-3 hover:bg-white/[.03]">' + ring(modDone(t), t.steps.length, 34) +
+        '<span class="flex-1 min-w-0"><span class="block text-slate-100 font-medium">' + (i + 1) + '. ' + esc(t.title) + '</span>' +
+        (t.programmeItem ? '<span class="block text-xs text-slate-500 mt-0.5">Programme item: ' + esc(t.programmeItem) + '</span>' : '') + '</span>' +
+        '<span class="text-xs text-slate-500 shrink-0">' + t.steps.length + ' steps · ~' + t.steps.reduce((a, s) => a + s.minutes, 0) + ' min</span></a>').join('') + '</div>' +
+      (w.apply ? '<div class="card work-card p-5 mb-6"><div class="card-title text-accent-400">This week\'s applied task</div><p class="text-slate-200 mt-1.5">' + esc(w.apply) + '</p></div>' : '') +
+      (ms ? '<div class="card p-5 mb-6 border-accent-500/30"><div class="card-title text-accent-400">◆ Milestone · ' + esc(ms.id) + '</div><div class="font-semibold text-white mt-1">' + esc(ms.title) + '</div>' +
+        '<p class="text-sm text-slate-300 mt-1"><b>Passes when:</b> ' + esc(ms.passes) + '</p><p class="text-xs text-slate-500 mt-1">Reviewed by: ' + esc(ms.reviewer) + '</p></div>' : '') +
+      (w.internal && w.internal.length ? '<div class="card p-5 mb-10"><div class="card-title">Internal SwiftAnt Academy sessions (scheduled separately)</div><ul class="mt-2 grid gap-1 text-sm text-slate-300">' +
+        w.internal.map((x) => '<li>◌ ' + esc(x) + '</li>').join('') + '</ul><p class="text-xs text-slate-500 mt-2">Until these sessions are available, use the slot for the AZ-104 track and this week\'s applied task.</p></div>' : '') +
+      '</div>';
+  }
+
   const stat = (n, l) => '<div class="rounded-xl bg-ink-900/60 border border-white/5 py-3"><div class="text-2xl font-extrabold text-white">' + n + '</div><div class="text-[11px] text-slate-400 uppercase tracking-wider">' + l + '</div></div>';
 
   function briefView(m) {
@@ -193,18 +208,21 @@
         }).join('') + '</div>' + (ans !== undefined ? '<p class="text-sm mt-2 ' + (ans === item.a ? 'text-emerald-300' : 'text-amber-300') + '">' + (ans === item.a ? 'Correct. ' : 'Not quite. ') + esc(item.why) + '</p>' : '') + '</div>';
     }).join('');
     return '<div class="max-w-5xl mx-auto px-4 sm:px-8 py-8">' +
-      '<nav class="text-xs text-slate-500 mb-3"><a href="#/" class="hover:text-slate-300">Dashboard</a> › Module ' + m.num + '</nav>' +
-      '<div class="flex flex-col sm:flex-row sm:items-end gap-4 mb-6"><div class="flex-1"><div class="text-[11px] font-semibold text-brand-300 uppercase tracking-wider">Module ' + m.num + ' · Briefing · 2 min</div>' +
-      '<h1 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">' + esc(m.title) + '</h1><p class="text-slate-400 mt-2">' + esc(m.blurb) + '</p></div>' +
-      '<a class="btn-primary shrink-0" href="#/m/' + m.id + '/lab/1">Start lab →</a></div>' +
-      '<div class="card p-5 mb-6"><div class="card-title">After this module you can</div><ul class="grid gap-2 mt-2">' + m.outcomes.map((o) => '<li class="flex gap-2 text-slate-200"><span class="text-emerald-400">✓</span><span>' + esc(o) + '</span></li>').join('') + '</ul></div>' +
+      '<nav class="text-xs text-slate-500 mb-3"><a href="#/" class="hover:text-slate-300">Dashboard</a> › <a href="#/w/' + m.week + '" class="hover:text-slate-300">Week ' + m.week + '</a> › Topic ' + m.tnum + '</nav>' +
+      '<div class="flex flex-col sm:flex-row sm:items-end gap-4 mb-6"><div class="flex-1"><div class="text-[11px] font-semibold text-brand-300 uppercase tracking-wider">' + topicLabel(m) + ' · Briefing</div>' +
+      '<h1 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">' + esc(m.title) + '</h1><p class="text-slate-400 mt-2">' + esc(m.blurb) + '</p>' +
+      (m.programmeItem ? '<p class="text-xs text-slate-500 mt-2">Programme item: ' + esc(m.programmeItem) + '</p>' : '') + '</div>' +
+      '<a class="btn-primary shrink-0" href="#/m/' + m.id + '/lab/1">Start hands-on →</a></div>' +
+      '<div class="card p-5 mb-6"><div class="card-title">After this topic you can</div><ul class="grid gap-2 mt-2">' + m.outcomes.map((o) => '<li class="flex gap-2 text-slate-200"><span class="text-emerald-400">✓</span><span>' + esc(o) + '</span></li>').join('') + '</ul></div>' +
       '<h2 class="section-title">Concepts you will use</h2><div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-8">' +
       m.concepts.map((c) => '<div class="card p-4"><div class="font-semibold text-white">' + esc(c.t) + '</div><p class="text-sm text-slate-400 mt-1">' + esc(c.d) + '</p><code class="concept-ex">' + esc(c.ex) + '</code></div>').join('') + '</div>' +
-      '<h2 class="section-title">Hands-on lab</h2><div class="card divide-y divide-white/5 mb-8">' +
+      (m.leverage && m.leverage.length ? '<h2 class="section-title">Leverage Claude for this in your DevOps / Cloud role</h2><div class="grid sm:grid-cols-2 gap-3 mb-8">' +
+        m.leverage.map((x) => '<div class="card work-card p-4"><div class="font-semibold text-white">' + esc(x.t) + '</div><p class="text-sm text-slate-300 mt-1">' + esc(x.d) + '</p></div>').join('') + '</div>' : '') +
+      '<h2 class="section-title">Hands-on (in Claude)</h2><div class="card divide-y divide-white/5 mb-8">' +
       m.steps.map((s, i) => '<a href="#/m/' + m.id + '/lab/' + (i + 1) + '" class="flex items-center gap-3 px-4 py-3 hover:bg-white/[.03]">' +
         '<span class="step-dot ' + (S.progress.steps[s.id] ? 'step-done' : '') + '">' + (S.progress.steps[s.id] ? '✓' : i + 1) + '</span><span class="flex-1 min-w-0"><span class="text-slate-100">' + esc(s.title) + '</span>' +
-        (s.tag ? ' <span class="tag">' + esc(s.tag) + '</span>' : '') + '</span><span class="text-xs text-slate-500 shrink-0">' + s.minutes + ' min</span></a>').join('') + '</div>' +
-      '<div class="grid lg:grid-cols-2 gap-6 mb-10"><div><h2 class="section-title">Free sources</h2><div class="card p-4 grid gap-2">' +
+        ' <span class="tag">' + (s.kind === 'guide' ? 'Do it in Claude' : 'API playground') + '</span>' + (s.tag ? ' <span class="tag">' + esc(s.tag) + '</span>' : '') + '</span><span class="text-xs text-slate-500 shrink-0">' + s.minutes + ' min</span></a>').join('') + '</div>' +
+      '<div class="grid lg:grid-cols-2 gap-6 mb-10"><div><h2 class="section-title">Official docs &amp; free sources</h2><div class="card p-4 grid gap-2">' +
       m.sources.map((s) => '<a class="src-link" href="' + esc(s.url) + '" target="_blank" rel="noopener noreferrer">↗ ' + esc(s.label) + '</a>').join('') + '</div></div>' +
       '<div><h2 class="section-title">Quick check (optional)</h2><div class="grid gap-3">' + q + '</div></div></div></div>';
   }
@@ -220,21 +238,22 @@
 
   function labView(r) {
     const { mod, step, idx } = r;
-    document.title = step.title + ' · Claude Learning';
+    document.title = step.title + ' · SRE Learning';
     const pills = mod.steps.map((s, i) => '<a href="#/m/' + mod.id + '/lab/' + (i + 1) + '" title="' + esc(s.title) + '" class="pill ' + (i === idx ? 'pill-active' : '') + ' ' + (S.progress.steps[s.id] ? 'pill-done' : '') + '">' + (S.progress.steps[s.id] && i !== idx ? '✓' : i + 1) + '</a>').join('');
     const files = (step.files || []).map((f) => '<details class="file"><summary><span class="text-accent-400">▸</span> ' + esc(PL.FILE_LABELS[f] || f) + ' <span class="text-slate-500 text-xs">(lab file · inserted as {{' + f + '}})</span></summary><pre>' + esc(PL.PLACEHOLDERS[f]) + '</pre></details>').join('');
-    const hasTools = !!(step.body.tools && step.body.tools.length) || !!(step.solution && step.solution.tools);
+    const guide = step.kind === 'guide';
+    const hasTools = !guide && (!!(step.body.tools && step.body.tools.length) || !!(step.solution && step.solution.tools));
     const prev = idx > 0 ? '#/m/' + mod.id + '/lab/' + idx : '#/m/' + mod.id;
     const nextMod = MODS[MODS.indexOf(mod) + 1];
     const next = idx < mod.steps.length - 1 ? '#/m/' + mod.id + '/lab/' + (idx + 2) : nextMod ? '#/m/' + nextMod.id : '#/deploy';
-    const nextLabel = idx < mod.steps.length - 1 ? 'Next step →' : nextMod ? 'Next module →' : 'Deployment Hub →';
+    const nextLabel = idx < mod.steps.length - 1 ? 'Next step →' : nextMod ? (nextMod.week !== mod.week ? 'Next week →' : 'Next topic →') : 'Deployment Hub →';
 
     return '<div class="lab-grid" id="lab-grid" style="--left:' + S.leftPct + '%">' +
       '<section class="lab-left" aria-label="Instructions"><div class="p-4 sm:p-6">' +
-      '<nav class="text-xs text-slate-500 mb-3 flex items-center gap-1 flex-wrap"><a href="#/" class="hover:text-slate-300">Dashboard</a> › <a href="#/m/' + mod.id + '" class="hover:text-slate-300">Module ' + mod.num + ': ' + esc(mod.title) + '</a></nav>' +
+      '<nav class="text-xs text-slate-500 mb-3 flex items-center gap-1 flex-wrap"><a href="#/" class="hover:text-slate-300">Dashboard</a> › <a href="#/w/' + mod.week + '" class="hover:text-slate-300">Week ' + mod.week + '</a> › <a href="#/m/' + mod.id + '" class="hover:text-slate-300">' + esc(mod.title) + '</a></nav>' +
       '<div class="flex gap-1.5 flex-wrap mb-4">' + pills + '</div>' +
       '<h1 class="text-xl sm:text-2xl font-extrabold text-white leading-tight">Step ' + (idx + 1) + ': ' + esc(step.title) + '</h1>' +
-      '<div class="flex flex-wrap items-center gap-2 mt-2 text-xs"><span class="tag">⏱ ' + step.minutes + ' min</span>' + (step.tag ? '<span class="tag tag-accent">' + esc(step.tag) + '</span>' : '') +
+      '<div class="flex flex-wrap items-center gap-2 mt-2 text-xs"><span class="tag">⏱ ' + step.minutes + ' min</span><span class="tag">' + (guide ? 'Do it in Claude' : 'API playground') + '</span>' + (step.tag ? '<span class="tag tag-accent">' + esc(step.tag) + '</span>' : '') +
       '<a class="tag hover:text-white" href="' + esc(step.source.url) + '" target="_blank" rel="noopener noreferrer">Source ↗ ' + esc(step.source.label) + '</a></div>' +
       '<div class="card p-4 mt-5"><div class="card-title">Scenario</div><p class="text-slate-200 mt-1.5 leading-relaxed">' + step.scenario + '</p></div>' +
       '<div class="card p-4 mt-3"><div class="card-title">Your task</div><ol class="task-list mt-2">' + step.task.map((t) => '<li>' + t + '</li>').join('') + '</ol>' +
@@ -242,12 +261,33 @@
       (files ? '<div class="mt-3 grid gap-2">' + files + '</div>' : '') +
       (step.panel === 'billing' ? billingPanel() : '') + (step.panel === 'vendor' ? vendorPanel() : '') +
       '<div class="card p-4 mt-3"><div class="flex items-center justify-between"><div class="card-title">Checks</div><span id="check-summary" class="text-xs text-slate-400"></span></div><ul id="checks" class="mt-2 grid gap-1.5"></ul></div>' +
-      '<div class="card work-card p-4 mt-3"><div class="card-title text-accent-400">Implement it</div><p class="text-slate-300 mt-1.5 text-sm leading-relaxed">' + step.atWork + '</p></div>' +
+      '<div class="card work-card p-4 mt-3"><div class="card-title text-accent-400">Leverage it at work (DevOps / Cloud)</div><p class="text-slate-300 mt-1.5 text-sm leading-relaxed">' + step.atWork + '</p></div>' +
       (step.hint ? '<details class="card p-4 mt-3 hint"><summary class="card-title cursor-pointer">Hint</summary><p class="text-sm text-slate-300 mt-2">' + esc(step.hint) + '</p></details>' : '') +
       '<div class="flex justify-between gap-3 mt-5 pb-6"><a class="btn-ghost btn-sm" href="' + prev + '">← Back</a><a class="btn-ghost btn-sm" href="' + next + '">' + nextLabel + '</a></div>' +
       '</div></section>' +
       '<div class="lab-handle" id="lab-handle" role="separator" aria-orientation="vertical" title="Drag to resize"></div>' +
-      '<section class="lab-right" aria-label="Playground">' +
+      (guide ? guidePane(step) + '</div>' : playgroundPane(step, hasTools));
+  }
+
+  function guidePane(step) {
+    const where = { 'claude.ai': 'https://claude.ai/new', 'Claude Code': 'https://code.claude.com/docs', 'Cowork': 'https://claude.com/docs/cowork/overview', 'Claude for Excel': 'https://claude.com/docs/office-agents/excel', 'Claude for Word': 'https://claude.com/docs/office-agents/word', 'Claude for PowerPoint': 'https://claude.com/docs/office-agents/powerpoint' };
+    return '<section class="lab-right" aria-label="Do it in Claude">' +
+      '<div class="pg-toolbar"><div class="font-semibold text-white text-sm px-1">Do it in Claude</div>' +
+      '<a class="btn-run" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">Open claude.ai ↗</a></div>' +
+      '<div class="guide-body">' +
+      (step.prompts || []).map((p, i) => '<div class="guide-card"><div class="guide-hdr"><span><span class="guide-num">' + (i + 1) + '</span> ' + esc(p.label) + '</span>' +
+        (where[p.where] ? '<a class="text-[11px] text-brand-300 hover:underline" href="' + where[p.where] + '" target="_blank" rel="noopener noreferrer">' + esc(p.where) + ' ↗</a>' : '<span class="text-[11px] text-slate-500">' + esc(p.where || '') + '</span>') + '</div>' +
+        (p.note ? '<p class="text-xs text-slate-400 px-3 pt-2">' + p.note + '</p>' : '') +
+        '<div class="codeblock m-3"><div class="codeblock-bar"><span>' + esc(p.lang || 'prompt') + '</span><button class="btn-copy" data-action="copy-pre">Copy</button></div><pre class="whitespace-pre-wrap">' + esc(p.text) + '</pre></div></div>').join('') +
+      (step.expected && step.expected.length ? '<div class="guide-card"><div class="guide-hdr"><span>✓ What a good result looks like</span></div><ul class="grid gap-1.5 p-3 text-sm text-slate-300">' +
+        step.expected.map((x) => '<li class="flex gap-2"><span class="text-emerald-400">•</span><span>' + esc(x) + '</span></li>').join('') + '</ul></div>' : '') +
+      (step.verify ? '<div class="guide-card"><div class="guide-hdr"><span>⚠ Verify before you trust it</span></div><p class="p-3 text-sm text-slate-300">' + esc(step.verify) + '</p></div>' : '') +
+      '<p class="text-xs text-slate-500 px-1 pb-6">Tick the checks on the left once you have done each part in Claude. Never paste secrets, customer data, or production credentials into a prompt.</p>' +
+      '</div></section>';
+  }
+
+  function playgroundPane(step, hasTools) {
+    return '<section class="lab-right" aria-label="Playground">' +
       '<div class="pg-toolbar"><div class="tabs" role="tablist">' +
       [['request', 'Request'], ['curl', 'cURL'], ['python', 'Python'], ['typescript', 'TypeScript']].map((t) => '<button class="tab ' + (S.tab === t[0] ? 'tab-active' : '') + '" data-action="tab" data-tab="' + t[0] + '">' + t[1] + '</button>').join('') +
       '</div><div class="flex items-center gap-2"><span id="json-state" class="text-[11px]"></span>' +
@@ -285,6 +325,7 @@
   }
 
   function afterLabRender(step) {
+    if (step.kind === 'guide') { renderChecks(step); return; }
     const ed = $('#editor');
     ed.value = editorText(step);
     showTab(step);
@@ -380,7 +421,7 @@
   function renderOutput() {
     const out = $('#out');
     const r = S.route;
-    if (!out || !r || r.view !== 'lab') return;
+    if (!out || !r || r.view !== 'lab' || r.step.kind === 'guide') return;
     const step = r.step;
     const ctx = S.results[step.id];
     const status = $('#out-status');
@@ -427,6 +468,7 @@
 
   /* ---------------- run loop ---------------- */
   async function run(step) {
+    if (step.kind === 'guide') return;
     if (S.run) { S.run.abort(); return; }
     const body = validateJSON();
     if (!body) { toast('Request JSON is invalid: fix it before running.', 'error'); return; }
@@ -523,6 +565,17 @@
     const a = t.dataset.action;
     const step = S.route && S.route.step;
     if (a === 'settings') { openSettings(); return; }
+    if (a === 'auth') { $('#auth-status').textContent = ''; $('#auth').hidden = false; setTimeout(() => { const i = $('#auth-email'); if (i) i.focus(); }, 30); return; }
+    if (a === 'close-auth') { $('#auth').hidden = true; return; }
+    if (a === 'auth-send') {
+      const email = ($('#auth-email').value || '').trim();
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { $('#auth-status').innerHTML = '<span class="text-red-300">Enter a valid email address.</span>'; return; }
+      $('#auth-status').textContent = 'Sending…';
+      try { await PL.sync.signIn(email); $('#auth-status').innerHTML = '<span class="text-emerald-300">Check your inbox: click the sign-in link from this same browser.</span>'; }
+      catch (err) { $('#auth-status').innerHTML = '<span class="text-red-300">' + esc(err.message) + '</span>'; }
+      return;
+    }
+    if (a === 'auth-signout') { await PL.sync.signOut(); $('#auth').hidden = true; toast('Signed out: progress stays saved in this browser'); return; }
     if (a === 'toggle-sidebar') { document.body.classList.toggle('sidebar-open'); return; }
     if (a === 'close-settings') { closeSettings(); return; }
     if (a === 'save-settings') { if (saveSettings()) { closeSettings(); toast(PL.settings.isLive() ? 'Live mode on' : 'Settings saved · simulated mode', 'ok'); } return; }
@@ -545,7 +598,8 @@
       return;
     }
     if (a === 'copy-pre') {
-      const pre = t.parentElement.querySelector('pre');
+      const box = t.closest('.codeblock') || t.parentElement;
+      const pre = box.querySelector('pre');
       if (pre && (await copyText(pre.textContent))) toast('Copied', 'ok');
       return;
     }
@@ -619,4 +673,35 @@
   window.addEventListener('hashchange', onRoute);
   renderHeader();
   onRoute();
+
+  /* ---------------- optional login + progress sync ---------------- */
+  function renderAuth(user) {
+    const btn = $('#auth-btn');
+    if (!btn || !PL.sync || !PL.sync.enabled) return;
+    btn.classList.remove('hidden');
+    btn.innerHTML = user ? '<span class="dot bg-emerald-400"></span><span class="hidden sm:inline">' + esc(user.email) + '</span><span class="sm:hidden">Account</span>' : '<span class="dot bg-slate-400"></span><span>Sign in</span>';
+    $('#auth-signed-in').hidden = !user;
+    $('#auth-signed-out').hidden = !!user;
+    if (user) $('#auth-who').textContent = user.email;
+    if (S.route && S.route.view === 'home') renderTeam();
+  }
+  async function renderTeam() {
+    const box = $('#team');
+    if (!box || !PL.sync || !PL.sync.user()) return;
+    const rows = await PL.sync.team();
+    if (!rows.length) return;
+    box.innerHTML = '<h2 class="section-title">Team progress</h2><div class="card divide-y divide-white/5 mb-10">' + rows.map((r) => {
+      const n = Object.keys((r.data && r.data.steps) || {}).filter((k) => STEP_INDEX[k]).length;
+      return '<div class="flex items-center gap-3 px-4 py-3">' + ring(n, TOTAL_STEPS, 34) + '<span class="flex-1 min-w-0 text-slate-100 truncate">' + esc(r.email || 'member') + '</span><span class="text-xs text-slate-500">' + n + '/' + TOTAL_STEPS + ' steps · updated ' + esc(new Date(r.updated_at).toLocaleDateString()) + '</span></div>';
+    }).join('') + '</div>';
+  }
+  PL.renderTeam = renderTeam;
+  if (PL.sync && PL.sync.enabled) {
+    PL.sync.init(() => S.progress, (merged) => {
+      S.progress = Object.assign({ steps: {}, manual: {}, quiz: {}, seen: {} }, merged);
+      store.set('pl.progress', S.progress);
+      renderHeader(); renderSidebar();
+      if (!S.route || S.route.view !== 'lab') renderView(); else renderChecks(S.route.step);
+    }, renderAuth).catch((e) => console.warn('sync init failed', e));
+  }
 })();

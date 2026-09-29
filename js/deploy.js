@@ -1,4 +1,4 @@
-/* Claude Learning · Deployment Hub + DevOps & Cloud setup guide pages */
+/* SRE Learning · Deployment Hub + DevOps & Cloud setup guide pages */
 (function () {
   'use strict';
   const PL = window.PL;
@@ -21,7 +21,7 @@
 
       '<h2 id="gh" class="section-title">A · GitHub Pages (recommended)</h2><div class="card p-5 grid gap-5 mb-8">' +
       step(1, 'Create an empty public repo', '<p>On github.com, go to <b>New repository</b>. Name it <code>' + esc(r) + '</code>, set visibility to <b>Public</b>, and do <b>not</b> add a README.</p>') +
-      step(2, 'Push the code', code('cd ' + r + '\ngit init -b main\ngit add .\ngit commit -m "Claude Learning: Week 4 labs"\ngit remote add origin https://github.com/' + o + '/' + r + '.git\ngit push -u origin main')) +
+      step(2, 'Push the code', code('cd ' + r + '\ngit init -b main\ngit add .\ngit commit -m "SRE Learning: Week 4 labs"\ngit remote add origin https://github.com/' + o + '/' + r + '.git\ngit push -u origin main')) +
       step(3, 'Turn on Pages with GitHub Actions', '<p>In the repo, go to <b>Settings → Pages → Build and deployment</b> and set <b>Source</b> to <b>GitHub Actions</b>. The included <code>.github/workflows/deploy-pages.yml</code> deploys every push to <code>main</code>.</p><p>Alternative: choose <b>Deploy from a branch</b> → <code>main</code> / <code>(root)</code>. <code>.nojekyll</code> is already included.</p>') +
       step(4, 'Open your site', '<p>It goes live in about a minute at ' + ext(esc(pagesUrl), esc(pagesUrl)) + '. Watch the progress in the repo\'s <b>Actions</b> tab.</p>') +
       '</div>' +

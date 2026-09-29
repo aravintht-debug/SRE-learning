@@ -1,4 +1,4 @@
-/* Claude Learning · shared utilities (no dependencies) */
+/* SRE Learning · shared utilities (no dependencies) */
 (function () {
   'use strict';
   const PL = (window.PL = window.PL || {});
