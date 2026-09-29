@@ -63,8 +63,8 @@
     'Figure 4 · The pattern every week teaches: Claude drafts, checks and humans decide, the pipeline acts');
 
   const flowLogin = () => svg(980, 150,
-    box(10, 40, 170, 70, 'Sign in', 'enter invited email', C.blue) + arrow(180, 75, 210, 75) +
-    box(210, 40, 180, 70, 'Email link', 'one-time, no password', C.purple) + arrow(390, 75, 420, 75) +
+    box(10, 40, 170, 70, 'Open the site', 'sign-in screen first', C.blue) + arrow(180, 75, 210, 75) +
+    box(210, 40, 180, 70, 'Sign in / Sign up', '@swiftant.com + password', C.purple) + arrow(390, 75, 420, 75) +
     box(420, 40, 180, 70, 'Supabase Auth', 'confirms who you are', C.pink) + arrow(600, 75, 630, 75) +
     box(630, 40, 170, 70, 'Merge progress', 'browser + cloud', C.amber) + arrow(800, 75, 830, 75) +
     box(830, 40, 140, 70, 'Team view', 'see each other', C.green),
@@ -141,14 +141,14 @@
         '<p><b>How it was deployed:</b> the code was pushed to the public repo <code>aravintht-debug/claude-learning</code>, GitHub Pages was set to deploy through GitHub Actions, and each push now validates and publishes to <code>https://aravintht-debug.github.io/claude-learning/</code> in about a minute. The <a class="src-link text-sm" href="#/deploy">Deployment Hub</a> covers Vercel and custom subdomains.</p>') +
 
       sec('login', '8. Login and why Supabase',
-        '<p><b>Why a service is needed at all:</b> GitHub Pages only serves files. It has no server, no database and no user accounts. Without login, each person\'s progress is saved <i>in their own browser</i>: that works, but it doesn\'t follow you to another device and nobody else can see it. To <b>sign in</b> and <b>sync progress</b>, you need something that (1) confirms who you are and (2) stores each person\'s progress safely.</p>' +
-        '<p><b>Why Supabase:</b> its free tier gives both, without running any server of our own: <b>Supabase Auth</b> (email sign-in links, so no passwords) and a small <b>Postgres database</b> with <b>row-level security</b>. The browser talks to it directly, which fits a static site.</p>' +
+        '<p><b>Why a service is needed at all:</b> GitHub Pages only serves files. It has no server, no database and no user accounts. Without login, each person\'s progress is saved <i>in their own browser</i>: that works, but it doesn\'t follow you to another device and nobody else can see it. To <b>sign in</b> and <b>sync progress</b>, you need something that (1) confirms who you are and (2) stores each person\'s progress safely. The site opens on a <b>Sign in / Sign up</b> screen, and the course appears only after you sign in.</p>' +
+        '<p><b>Why Supabase:</b> its free tier gives both, without running any server of our own: <b>Supabase Auth</b> (company email + password accounts) and a small <b>Postgres database</b> with <b>row-level security</b>. The browser talks to it directly, which fits a static site.</p>' +
         flowLogin() +
         '<div class="grid sm:grid-cols-2 gap-3 my-3">' +
         card('What is stored', 'One row per person: email, completed steps, ticked checks, quiz answers and last-updated time. <b>Your Claude API key is never stored or synced</b>; it stays in your browser.') +
-        card('Who can see what', 'Only <b>invited</b> users can sign in (open sign-up is turned off). Signed-in team members can <i>read</i> the team\'s progress, but each person can only <i>write</i> their own row. The database enforces this, not the page.') +
+        card('Who can see what', 'Only <b>@swiftant.com</b> addresses can sign up. A rule inside the database rejects any other domain, so it can\'t be bypassed from the browser. Signed-in team members can <i>read</i> the team\'s progress, but each person can only <i>write</i> their own row. The database enforces this, not the page.') +
         card('Is the key in the code safe?', 'The site uses Supabase\'s <b>anon public key</b>, which is designed to be public. Access is controlled by the row-level security rules in <code>supabase/schema.sql</code>. The powerful <code>service_role</code> key is never used in the site.') +
-        card('Status on this site', loginOn ? '<span class="text-emerald-300">Login is switched on.</span> Use the <b>Sign in</b> button in the header.' : '<span class="text-amber-300">Built but not switched on yet.</span> The site owner creates a free Supabase project, runs the SQL, invites users, and adds the project URL and anon key to <code>js/config.js</code>. Step-by-step instructions are in <code>SETUP-LOGIN.md</code> in the repo.') + '</div>' +
+        card('Status on this site', loginOn ? '<span class="text-emerald-300">Login is switched on.</span> New users choose <b>Sign up</b> on the first screen with their @swiftant.com email and a password (8+ characters). Forgotten passwords are handled by the site owner in the Supabase dashboard.' : '<span class="text-amber-300">Built but not switched on yet.</span> The site owner creates a free Supabase project, runs the SQL, invites users, and adds the project URL and anon key to <code>js/config.js</code>. Step-by-step instructions are in <code>SETUP-LOGIN.md</code> in the repo.') + '</div>' +
         '<p><b>Alternatives considered:</b> Firebase has the same role but is heavier; Cloudflare Access can restrict <i>who opens the site</i> but can\'t sync progress; a custom backend would mean running a server. Supabase is the smallest option that gives both login and sync for free.</p>') +
 
       sec('safety', '9. Your API key, costs and data',
@@ -173,7 +173,8 @@
         faq('Where is my progress saved?', 'In your browser (local storage). When login is on and you sign in, it is also synced to the cloud and merged across devices.') +
         faq('Is my data sent anywhere else?', 'No. The page\'s security policy allows only api.anthropic.com (with your key) and Supabase (if you sign in).') +
         faq('Why AZ-104?', 'It is the Azure certification track for this programme cycle. The AZ-104 topics follow Microsoft\'s official skills outline, with a Claude Project as your study coach.') +
-        faq('Can someone else use it?', 'Yes, send them the link. Their progress is kept in their own browser; with login on, invite them to sync and appear in Team progress.') + '</div>') +
+        faq('Can someone else use it?', 'Yes. Send them the link: they choose <b>Sign up</b> with their @swiftant.com email and a password, and they appear in Team progress.') +
+        faq('Why password sign-in instead of an email link?', 'Supabase\'s free email sender only delivers to project members, at most 2 emails an hour, so sign-in links would not reach colleagues. Password accounts need no email. Microsoft (SwiftAnt) single sign-on can be added later with an Entra ID app registration.') + '</div>') +
 
       sec('glossary', '12. Glossary', '<div class="grid sm:grid-cols-2 gap-2 text-sm">' +
         [['Adaptive thinking', 'Claude reasons before answering and decides how much; you set the depth with <i>effort</i>.'], ['Effort', 'How much work Claude puts in: low, medium, high, xhigh or max. Higher costs more.'], ['Tool use', 'Claude asks your code to run a function (tool) and uses the result.'], ['Structured outputs', 'Claude\'s reply is guaranteed to match a JSON schema.'], ['Guide step', 'A "Do it in Claude" task with prompts, checked manually.'], ['API step', 'A playground task whose answer is checked automatically.'], ['Simulated mode', 'Labs play back pre-recorded answers when no API key is set.'], ['Claude Code', 'Anthropic\'s agentic coding tool for the terminal and IDE.'], ['Project (Claude)', 'A workspace with instructions and knowledge files shared by its chats.'], ['Skill', 'Packaged instructions and files Claude loads when a task matches.'], ['Supabase', 'A hosted Postgres database plus authentication, used here for optional login and sync.'], ['Row-level security', 'Database rules that decide which rows each signed-in user can read or write.']]

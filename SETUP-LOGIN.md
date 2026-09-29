@@ -1,6 +1,6 @@
 # Login + synced progress (Supabase, free)
 
-> **Status: set up.** Project `sre-learning` (region ap-south-1, Mumbai) is live and connected in `js/config.js`. The table and row-level security are applied, the Site URL and redirect are set to the GitHub Pages site, and open sign-ups are off. To add a person, see *Invite someone* below.
+> **Status: live.** The site opens on a **Sign in / Sign up** screen. Accounts use a company email + password; only `@swiftant.com` addresses can sign up (enforced by a database trigger in `supabase/schema.sql`). Email confirmation is off, because Supabase's free email sender only reaches project members (at most 2 emails an hour). Project: `sre-learning` (ap-south-1).
 
 The site works without login: progress is saved per browser. Follow these steps (about 15 minutes) to give invited users a sign-in link and progress that syncs across devices, with a **Team progress** panel on the dashboard.
 
@@ -39,8 +39,11 @@ Note: the free plan's built-in email sender is rate-limited and intended for sma
 - The table has row-level security: every signed-in member can *read* the team's progress, but each person can only *write* their own row.
 - To remove someone, delete them under Authentication → Users. Their progress row is deleted with them.
 
-## Invite someone
-In the Supabase dashboard, open **Authentication → Users → Add user → Send invitation** and enter their email. They get an email; they can click it, or later use **Sign in** on the site with the same email.
+## Add someone
+Send them the site link. They choose **Sign up** with their @swiftant.com email and a password.
+
+## Reset a forgotten password
+The free email sender can't reach colleagues, so the simplest reset is: Supabase dashboard → **Authentication → Users** → delete the user, and they sign up again. Their progress row is removed with them.
 
 ## Remove someone
 Delete them under Authentication → Users. Their progress row is removed automatically.

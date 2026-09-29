@@ -212,3 +212,11 @@ body.resizing { user-select: none; cursor: col-resize; }
   .handbook .card { background: #fff !important; border-color: #ccc !important; break-inside: avoid; }
   .hb-fig { background: #0f1629 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; break-inside: avoid; }
 }
+
+/* sign-in gate */
+body.locked #shell { visibility: hidden; }
+.gate { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 1rem; background: radial-gradient(900px 400px at 10% 0%, rgba(75,118,255,.18), transparent 60%), radial-gradient(600px 300px at 100% 100%, rgba(255,138,61,.12), transparent 60%), var(--ink-950); }
+.gate[hidden] { display: none; }
+.gate-card { width: 100%; max-width: 420px; background: var(--ink-850); border: 1px solid rgba(255,255,255,.1); border-radius: 18px; padding: 1.5rem; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+.gate .tabs { display: grid; grid-template-columns: 1fr 1fr; }
+.gate .tab { text-align: center; padding: .45rem; }
