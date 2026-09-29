@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://api.anthropic.com; img-src 'self' data:; base-uri 'self'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Claude Learning · Week 4</title>
+  <meta name="description" content="Claude Learning: hands-on, KodeKloud-style labs for Week 4 Prompting (advanced features, practical applications, prompting and ethics, security, responsible AI), then applied to DevOps and Cloud.">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/tailwind.config.js"></script>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="h-full bg-ink-950 text-slate-200 font-sans antialiased">
+  <div class="h-full flex flex-col">
+    <header class="app-header">
+      <button class="btn-icon lg:hidden" data-action="toggle-sidebar" aria-label="Toggle navigation">☰</button>
+      <a href="#/" class="flex items-center gap-2.5 min-w-0">
+        <span class="logo">C</span>
+        <span class="min-w-0 leading-tight">
+          <span class="block font-extrabold text-white tracking-tight">Claude Learning</span>
+          <span class="block text-[11px] text-slate-400 truncate">Week 4 · Prompting</span>
+        </span>
+      </a>
+      <div class="hidden md:flex items-center gap-3 ml-6 flex-1 max-w-xs">
+        <div class="h-1.5 flex-1 rounded-full bg-ink-700 overflow-hidden"><div id="progress-bar" class="h-full bg-gradient-to-r from-brand-500 to-emerald-400 transition-all" style="width:0%"></div></div>
+        <span id="progress-text" class="text-xs text-slate-400 whitespace-nowrap"></span>
+      </div>
+      <div class="ml-auto flex items-center gap-2">
+        <button id="mode-pill" class="mode-pill" data-action="settings" title="API settings"></button>
+        <a id="repo-link" class="btn-icon hidden sm:grid" href="#/deploy" title="Source code" target="_blank" rel="noopener noreferrer">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        </a>
+        <button class="btn-icon" data-action="settings" aria-label="Settings" title="Settings">⚙</button>
+      </div>
+    </header>
+
+    <div class="flex flex-1 min-h-0 relative">
+      <aside id="sidebar" class="sidebar" aria-label="Curriculum">
+        <nav id="sidebar-nav" class="p-3 pb-10"></nav>
+      </aside>
+      <div class="sidebar-scrim lg:hidden" data-action="toggle-sidebar"></div>
+      <main id="view" class="flex-1 min-w-0 min-h-0 overflow-hidden"></main>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div id="settings" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="modal-card">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="settings-title" class="text-lg font-bold text-white">Claude API settings</h2>
+        <button class="btn-icon" data-action="close-settings" aria-label="Close">✕</button>
+      </div>
+
+      <label class="field-label" for="set-key">Your Anthropic API key <span class="text-slate-500 font-normal">(optional: without it, labs run in simulated mode)</span></label>
+      <div class="flex gap-2">
+        <input id="set-key" type="password" class="field font-mono" placeholder="sk-ant-..." autocomplete="off" spellcheck="false">
+        <button class="btn-ghost btn-sm" data-action="toggle-key">Show</button>
+      </div>
+      <label class="flex items-center gap-2 text-sm text-slate-300 mt-2"><input id="set-remember" type="checkbox"> Remember on this device (localStorage). Off = cleared when you close the tab.</label>
+
+      <div class="grid sm:grid-cols-2 gap-3 mt-4">
+        <div>
+          <label class="field-label" for="set-model">Model</label>
+          <select id="set-model" class="field"></select>
+        </div>
+        <div>
+          <label class="field-label" for="set-effort">Effort override</label>
+          <select id="set-effort" class="field">
+            <option value="">Use each lab's setting</option>
+            <option value="low">low</option>
+            <option value="medium">medium</option>
+            <option value="high">high</option>
+            <option value="xhigh">xhigh</option>
+            <option value="max">max</option>
+          </select>
+        </div>
+      </div>
+      <label class="flex items-start gap-2 text-sm text-slate-300 mt-3"><input id="set-fallback" type="checkbox" class="mt-1"> <span>Server-side refusal fallback (<code>fallbacks: "default"</code>, beta). If a safety classifier declines, the API retries on a fallback model.</span></label>
+
+      <div class="notice mt-4">
+        <b>How your key is handled:</b> it is sent only from this browser directly to <code>api.anthropic.com</code> (enforced by this page's Content-Security-Policy), never to this site's host. Use a key with a spend limit, created for labs, in its own Console workspace. For team or production apps, don't put keys in browsers: use a backend proxy.
+      </div>
+
+      <div id="set-status" class="text-sm mt-3 min-h-[1.25rem]"></div>
+      <div class="flex flex-wrap gap-2 justify-end mt-3">
+        <button class="btn-ghost btn-sm" data-action="forget-key">Forget key</button>
+        <button class="btn-ghost btn-sm" data-action="test-key">Test connection</button>
+        <button class="btn-primary btn-sm" data-action="save-settings">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" hidden role="status" aria-live="polite"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/data-devops.js"></script>
+  <script src="js/tools.js"></script>
+  <script src="js/claude.js"></script>
+  <script src="js/labs.js"></script>
+  <script src="js/labs-devops.js"></script>
+  <script src="js/deploy.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

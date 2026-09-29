@@ -1,0 +1,31 @@
+# Example: AI triage for failed jobs. Copy to .github/workflows/ai-ci-triage.yml
+# and put ci_failure_triage.py + redact_pii.py in scripts/.
+# Requires the repository secret ANTHROPIC_API_KEY (gh secret set ANTHROPIC_API_KEY).
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and test
+        run: |
+          set -o pipefail
+          make test 2>&1 | tee build.log
+
+      - name: AI failure triage
+        if: failure()
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          pip install --quiet anthropic
+          python scripts/ci_failure_triage.py build.log --summary "$GITHUB_STEP_SUMMARY"
