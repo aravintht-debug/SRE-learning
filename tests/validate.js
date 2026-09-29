@@ -21,7 +21,7 @@ const warn = (where, msg) => warnings.push(where + ': ' + msg);
 
 /* ---- load scripts in index.html order (skip browser-only files) ---- */
 const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
-const scripts = [...html.matchAll(/<script src="(js\/[^"]+)"><\/script>/g)].map((m) => m[1])
+const scripts = [...html.matchAll(/<script src="(js\/[^"?]+)(?:\?[^"]*)?"><\/script>/g)].map((m) => m[1])
   .filter((s) => !/tailwind\.config|deploy\.js|app\.js/.test(s));
 const memStore = () => { const d = {}; return { getItem: (k) => (k in d ? d[k] : null), setItem: (k, v) => { d[k] = String(v); }, removeItem: (k) => { delete d[k]; } }; };
 const sandbox = { console, location: { search: '' }, localStorage: memStore(), sessionStorage: memStore(), setTimeout, clearTimeout, TextDecoder, URL, Blob: function () {} };
