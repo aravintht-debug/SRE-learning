@@ -10,6 +10,10 @@ create table if not exists public.progress (
 
 alter table public.progress enable row level security;
 
+-- Expose the table to the Data API for signed-in users only (RLS below still limits rows).
+revoke all on public.progress from anon;
+grant select, insert, update on public.progress to authenticated;
+
 drop policy if exists "team can read progress" on public.progress;
 create policy "team can read progress" on public.progress
   for select to authenticated using (true);

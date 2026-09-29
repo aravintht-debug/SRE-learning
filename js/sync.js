@@ -39,6 +39,12 @@
     onUser = userChanged || onUser;
     if (!enabled) return;
     client = window.supabase.createClient(cfg.url, cfg.anonKey, { auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true, autoRefreshToken: true } });
+    // Invite / confirmation links arrive as #access_token=…&refresh_token=… (implicit flow); adopt them, then clean the URL.
+    const hp = new URLSearchParams(location.hash.replace(/^#\/?/, ''));
+    if (hp.get('access_token') && hp.get('refresh_token')) {
+      await client.auth.setSession({ access_token: hp.get('access_token'), refresh_token: hp.get('refresh_token') });
+      history.replaceState(null, '', location.pathname + '#/');
+    }
     const { data } = await client.auth.getSession();
     user = data.session ? data.session.user : null;
     if (/[?&]code=/.test(location.search)) history.replaceState(null, '', location.pathname + location.hash);

@@ -1,4 +1,6 @@
-# Turn on login + synced progress (Supabase, free)
+# Login + synced progress (Supabase, free)
+
+> **Status: set up.** Project `sre-learning` (region ap-south-1, Mumbai) is live and connected in `js/config.js`. The table and row-level security are applied, the Site URL and redirect are set to the GitHub Pages site, and open sign-ups are off. To add a person, see *Invite someone* below.
 
 The site works without login: progress is saved per browser. Follow these steps (about 15 minutes) to give invited users a sign-in link and progress that syncs across devices, with a **Team progress** panel on the dashboard.
 
@@ -21,7 +23,7 @@ The site works without login: progress is saved per browser. Follow these steps 
 Note: the free plan's built-in email sender is rate-limited and intended for small teams. For more users, add your own SMTP under Authentication → Emails.
 
 ## 3. Connect the site
-1. Go to **Project Settings → API** and copy the **Project URL** and the **anon public** key. Never use the `service_role` key in the site.
+1. Go to **Project Settings → API Keys** and copy the **Project URL** and the **publishable** key (`sb_publishable_…`; older projects call it the anon public key). Never use a **secret** / `service_role` key in the site.
 2. Put them in `js/config.js`:
    ```js
    supabase: {
@@ -36,3 +38,9 @@ Note: the free plan's built-in email sender is rate-limited and intended for sma
 - On sign-in, local and cloud progress are **merged** (nothing is lost), and every later change syncs automatically.
 - The table has row-level security: every signed-in member can *read* the team's progress, but each person can only *write* their own row.
 - To remove someone, delete them under Authentication → Users. Their progress row is deleted with them.
+
+## Invite someone
+In the Supabase dashboard, open **Authentication → Users → Add user → Send invitation** and enter their email. They get an email; they can click it, or later use **Sign in** on the site with the same email.
+
+## Remove someone
+Delete them under Authentication → Users. Their progress row is removed automatically.
