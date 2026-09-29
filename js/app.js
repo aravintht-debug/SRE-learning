@@ -61,6 +61,7 @@
     const parts = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
     if (parts[0] === 'deploy') return { view: 'deploy' };
     if (parts[0] === 'kit') return { view: 'kit' };
+    if (parts[0] === 'handbook') return { view: 'handbook' };
     if (parts[0] === 'w') { const w = weekOf(parseInt(parts[1], 10)); return w ? { view: 'week', wk: w } : { view: 'home' }; }
     if (parts[0] === 'm') {
       const mod = MODS.find((m) => m.id === parts[1]);
@@ -110,6 +111,7 @@
     const activeMod = r.mod && r.mod.id;
     const link = (href, label, active, extra) => '<a href="' + href + '" class="side-link ' + (active ? 'active' : '') + '">' + (extra || '') + '<span class="truncate">' + label + '</span></a>';
     let html = link('#/', 'Dashboard · 20-week roadmap', r.view === 'home', '<span class="ico">⌂</span>');
+    html += link('#/handbook', 'Handbook: how this course works', r.view === 'handbook', '<span class="ico">?</span>');
     const activeWeek = r.wk ? r.wk.week : r.mod ? r.mod.week : null;
     let lastStream = null;
     WEEKS.forEach((w) => {
@@ -141,10 +143,10 @@
     const main = $('#view');
     if (v === 'lab') { main.innerHTML = labView(S.route); afterLabRender(S.route.step); return; }
     main.innerHTML = '<div class="h-full overflow-y-auto" id="scroller">' +
-      (v === 'brief' ? briefView(S.route.mod) : v === 'week' ? weekView(S.route.wk) : v === 'deploy' ? PL.deployView() : v === 'kit' ? PL.kitView() : homeView()) + '</div>';
+      (v === 'brief' ? briefView(S.route.mod) : v === 'week' ? weekView(S.route.wk) : v === 'handbook' ? PL.handbookView() : v === 'deploy' ? PL.deployView() : v === 'kit' ? PL.kitView() : homeView()) + '</div>';
     if (v === 'brief') { S.progress.seen[S.route.mod.id] = true; saveProgress(); }
     if (v === 'home' && PL.renderTeam) PL.renderTeam();
-    document.title = (v === 'brief' ? S.route.mod.title + ' · ' : v === 'week' ? 'Week ' + S.route.wk.week + ' · ' : v === 'deploy' ? 'Deployment Hub · ' : v === 'kit' ? 'DevOps & Cloud setup guide · ' : '') + 'SRE Learning · SRE Programme';
+    document.title = (v === 'brief' ? S.route.mod.title + ' · ' : v === 'week' ? 'Week ' + S.route.wk.week + ' · ' : v === 'handbook' ? 'Handbook · ' : v === 'deploy' ? 'Deployment Hub · ' : v === 'kit' ? 'DevOps & Cloud setup guide · ' : '') + 'SRE Learning · SRE Programme';
   }
 
   function homeView() {
@@ -158,7 +160,7 @@
       '<p class="mt-3 text-slate-300 max-w-2xl">Each week follows the programme. Each topic has a short briefing built from the official docs, hands-on tasks you do <b class="text-white">in Claude</b> (claude.ai, Claude Code, or the built-in API playground), and a clear answer to <b class="text-white">how you leverage Claude for it in a DevOps / Cloud role</b>. The Azure track is <b class="text-white">AZ-104</b>.</p>' +
       '<div class="mt-6 flex flex-wrap gap-3">' +
       (next ? '<a class="btn-primary" href="#/m/' + next.m.id + '/lab/' + (next.i + 1) + '">' + (done ? 'Continue: ' : 'Start: ') + esc(next.s.title) + ' →</a>' : '<a class="btn-primary" href="#/deploy">All labs done 🎉 · Deploy your own copy →</a>') +
-      '<button class="btn-ghost" data-action="settings">' + (live ? 'Live mode · change settings' : 'Connect your Claude API key (optional)') + '</button></div>' +
+      '<button class="btn-ghost" data-action="settings">' + (live ? 'Live mode · change settings' : 'Connect your Claude API key (optional)') + '</button><a class="btn-ghost" href="#/handbook">Read the handbook</a></div>' +
       '<div class="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl text-center">' +
       stat(WEEKS.length, 'weeks') + stat(MODS.length, 'topics') + stat(TOTAL_STEPS, 'hands-on steps') + stat(done, 'completed') + '</div></section>' +
       '<h2 class="section-title">20-week roadmap</h2><div class="flex flex-wrap gap-2 mb-3">' + Object.keys(PL.STREAMS).map(streamChip).join('') + '</div>' +
@@ -565,6 +567,7 @@
     const a = t.dataset.action;
     const step = S.route && S.route.step;
     if (a === 'settings') { openSettings(); return; }
+    if (a === 'print') { window.print(); return; }
     if (a === 'auth') { $('#auth-status').textContent = ''; $('#auth').hidden = false; setTimeout(() => { const i = $('#auth-email'); if (i) i.focus(); }, 30); return; }
     if (a === 'close-auth') { $('#auth').hidden = true; return; }
     if (a === 'auth-send') {

@@ -194,3 +194,21 @@ body.resizing { user-select: none; cursor: col-resize; }
   .pg-out { flex: none; min-height: 60vh; }
   .out-body { overflow: visible; }
 }
+
+/* handbook */
+.handbook p { color: #cbd5e1; line-height: 1.7; margin: .6rem 0; font-size: 15px; }
+.hb-sec { margin-bottom: 2.5rem; scroll-margin-top: 1rem; }
+.hb-sec h2 { font-size: 1.3rem; font-weight: 800; color: #fff; margin-bottom: .75rem; padding-bottom: .4rem; border-bottom: 1px solid var(--line); }
+.hb-fig { margin: 1.25rem 0; padding: 1rem; background: var(--ink-900); border: 1px solid var(--line); border-radius: 14px; overflow-x: auto; }
+.hb-fig svg { min-width: 680px; font-family: Inter, system-ui, sans-serif; }
+.hb-fig figcaption { font-size: 12px; color: #94a3b8; margin-top: .5rem; text-align: center; }
+.hb-list { display: grid; gap: .5rem; color: #cbd5e1; font-size: 15px; line-height: 1.6; padding-left: 1.2rem; list-style: disc; }
+.handbook .data-table td.whitespace-normal { white-space: normal; }
+@media print {
+  .app-header, .sidebar, .sidebar-scrim, .no-print, #toast { display: none !important; }
+  html, body, #view, #scroller { height: auto !important; overflow: visible !important; background: #fff !important; }
+  .handbook, .handbook p, .handbook li, .handbook td, .handbook th { color: #111 !important; }
+  .handbook h1, .handbook h2, .handbook .text-white, .handbook b { color: #000 !important; }
+  .handbook .card { background: #fff !important; border-color: #ccc !important; break-inside: avoid; }
+  .hb-fig { background: #0f1629 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; break-inside: avoid; }
+}
