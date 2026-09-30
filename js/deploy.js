@@ -10,13 +10,15 @@
 
   PL.deployView = function () {
     const o = PL.SITE.owner, r = PL.SITE.repo;
-    const pagesUrl = 'https://' + o.toLowerCase() + '.github.io/' + r + '/';
+    const rootSite = r.toLowerCase() === o.toLowerCase() + '.github.io'; // <owner>.github.io repos are served at the domain root
+    const vercelName = r.replace(/.github.io$/i, '').toLowerCase();
+    const pagesUrl = 'https://' + o.toLowerCase() + '.github.io/' + (rootSite ? '' : r + '/');
     return '<div class="max-w-4xl mx-auto px-4 sm:px-8 py-8">' +
       '<nav class="text-xs text-slate-500 mb-3"><a href="#/" class="hover:text-slate-300">Dashboard</a> › Deployment Hub</nav>' +
       '<h1 class="text-2xl sm:text-3xl font-extrabold text-white">Deployment Hub</h1>' +
       '<p class="text-slate-400 mt-2">This site is plain static files (HTML, Tailwind CDN, vanilla JS) with no build step, so it can be hosted for free anywhere.</p>' +
       '<div class="grid sm:grid-cols-3 gap-3 my-6">' +
-      [['GitHub Pages', 'Free · <code>' + esc(o) + '.github.io/' + esc(r) + '</code>', '#gh'], ['Vercel', 'Free · <code>' + esc(r) + '.vercel.app</code>', '#vercel'], ['Custom subdomain', 'e.g. <code>learn.yourdomain.com</code>', '#domain']]
+      [['GitHub Pages', 'Free · <code>' + esc(pagesUrl.replace('https://', '')) + '</code>', '#gh'], ['Vercel', 'Free · <code>' + esc(vercelName) + '.vercel.app</code>', '#vercel'], ['Custom subdomain', 'e.g. <code>learn.yourdomain.com</code>', '#domain']]
         .map((x) => '<a href="' + x[2] + '" data-scroll class="card card-hover p-4"><div class="font-semibold text-white">' + x[0] + '</div><div class="text-xs text-slate-400 mt-1">' + x[1] + '</div></a>').join('') + '</div>' +
 
       '<h2 id="gh" class="section-title">A · GitHub Pages (recommended)</h2><div class="card p-5 grid gap-5 mb-8">' +
@@ -28,7 +30,7 @@
 
       '<h2 id="vercel" class="section-title">B · Vercel</h2><div class="card p-5 grid gap-5 mb-8">' +
       step(1, 'Import the repo', '<p>' + ext('https://vercel.com/new', 'vercel.com/new') + ' → import your GitHub repo → set Framework Preset to <b>Other</b>, leave Build Command <b>empty</b>, set Output Directory to <code>.</code> → Deploy.</p>') +
-      step(2, 'Or use the CLI', code('npx vercel@latest          # first run: log in + link (preview URL)\nnpx vercel@latest --prod   # production: https://' + r + '.vercel.app')) +
+      step(2, 'Or use the CLI', code('npx vercel@latest          # first run: log in + link (preview URL)\nnpx vercel@latest --prod   # production: https://' + vercelName + '.vercel.app')) +
       step(3, 'Security headers', '<p><code>vercel.json</code> sets a strict Content-Security-Policy (the only API this page can call is <code>api.anthropic.com</code>), <code>X-Frame-Options: DENY</code>, and <code>Referrer-Policy: no-referrer</code>.</p>') +
       '</div>' +
 
@@ -41,7 +43,7 @@
       '</div>' +
 
       '<h2 class="section-title">Before you share it</h2><div class="card p-5 text-sm text-slate-300 grid gap-2 mb-10">' +
-      '<div>✓ Set your GitHub username in <code>js/config.js</code>.</div>' +
+      '<div>✓ Set the GitHub owner, repo and site address in <code>js/config.js</code>.</div>' +
       '<div>✓ Visitors enter their own API key, and it stays in their browser. No key is ever stored in the repo.</div>' +
       '<div>✓ For a team deployment without personal keys, add a small backend proxy (an Azure Function, Lambda, or Cloudflare Worker) that holds the key in a secret store and enforces auth and rate limits.</div>' +
       '<div>✓ The license is MIT. Course links point to Anthropic\'s free resources, and no course content is copied.</div></div></div>';

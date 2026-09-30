@@ -32,8 +32,7 @@ There is no reset email (the free sender can't reach colleagues). In the Supabas
 | Authentication → Sign In / Providers → Email | Enabled; **Confirm email: off** |
 | Authentication → URL Configuration | **Site URL** and **Redirect URLs** = the site's live address (see below) |
 
-**Live address today:** `https://aravintht-debug.github.io/SRE-learning/`
-**Planned address:** `https://sre-learning.github.io/`. When the repo moves to the `SRE-Learning` organization, update the Site URL and Redirect URLs to this address, or sign-in stops working there. Add `http://localhost:8080/` to Redirect URLs if you test locally.
+**Live address:** `https://sre-learning.github.io/` (repo `SRE-Learning/sre-learning.github.io`). The old `aravintht-debug.github.io/SRE-learning/` address is retired. Add `http://localhost:8080/` to Redirect URLs if you test locally.
 
 ## Rebuilding from scratch
 Only needed if the Supabase project is lost or you set up a copy.
