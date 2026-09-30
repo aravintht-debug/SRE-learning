@@ -1,49 +1,54 @@
 # Login + synced progress (Supabase, free)
 
-> **Status: live.** The site opens on a **Sign in / Sign up** screen. Accounts use a company email + password; only `@swiftant.com` addresses can sign up (enforced by a database trigger in `supabase/schema.sql`). Email confirmation is off, because Supabase's free email sender only reaches project members (at most 2 emails an hour). Project: `sre-learning` (ap-south-1).
+> **Status: live.** The site opens on a **Sign in / Sign up** screen. Accounts use an `@swiftant.com` email + password. Supabase project: `sre-learning` (ID `izxrorgvdwrljfsopiza`, Mumbai / ap-south-1, free plan).
 
-The site works without login: progress is saved per browser. Follow these steps (about 15 minutes) to give invited users a sign-in link and progress that syncs across devices, with a **Team progress** panel on the dashboard.
+## How it works
+- **Sign up:** anyone with an `@swiftant.com` address chooses **Sign up** and sets a password. Other domains are rejected twice: in the browser and by a database trigger (`enforce_company_email` in [`supabase/schema.sql`](supabase/schema.sql)), so the rule holds even if someone bypasses the site.
+- **No confirmation email.** Email confirmation is off, because Supabase's free email sender only reaches project members and sends at most 2 emails an hour. The trade-off: an address is not proven to belong to the person who signed up with it.
+- **Progress sync:** on sign-in, the browser's local progress and the cloud copy are **merged** (nothing is lost), and every later change syncs automatically. Progress is one row per user in `public.progress`.
+- **Team progress:** the dashboard shows every signed-in colleague's progress.
+- **Row-level security:** signed-in `@swiftant.com` users can *read* the team's rows; each person can only *write* their own. Visitors who are not signed in can read nothing (the `anon` role has no access).
+- **Claude API keys are never synced.** They stay in each person's browser.
+- **Content is still public:** the repo is public, so the course files can be read on GitHub. Login protects progress data, not the content.
 
-- Sign-in uses an email one-time link, so there are no passwords.
-- Only people you **invite** can sign in.
-- Claude API keys are never synced; they stay in each person's browser.
+## Everyday tasks
 
-## 1. Create the project (you)
-1. Go to https://supabase.com and sign in (for example with GitHub). Create a **New project** on the free plan, and pick a region near you. Supabase asks for a database password: keep it in your password manager. The site never uses it.
-2. Open **SQL Editor → New query**, paste the contents of [`supabase/schema.sql`](supabase/schema.sql), and click **Run**.
+### Add someone
+Send them the site link. They choose **Sign up** with their `@swiftant.com` email and a password.
 
-## 2. Configure sign-in
-1. **Authentication → URL Configuration**
-   - Site URL: `https://aravintht-debug.github.io/claude-learning/`
-   - Redirect URLs: add `https://aravintht-debug.github.io/claude-learning/` (and `http://localhost:8080/` if you test locally)
-2. **Authentication → Sign In / Providers → Email**: keep it enabled.
-3. **Authentication → Sign In / Providers**: turn **off** "Allow new users to sign up". Only invited users can then get in.
-4. **Authentication → Users → Invite user**: invite yourself and your colleague by email.
+### Change a password
+Signed-in users can change their own password from the account menu in the site header.
 
-Note: the free plan's built-in email sender is rate-limited and intended for small teams. For more users, add your own SMTP under Authentication → Emails.
+### Reset a forgotten password
+There is no reset email (the free sender can't reach colleagues). In the Supabase dashboard: **Authentication → Users** → delete the user, and they sign up again. **Their progress is deleted with them.**
 
-## 3. Connect the site
-1. Go to **Project Settings → API Keys** and copy the **Project URL** and the **publishable** key (`sb_publishable_…`; older projects call it the anon public key). Never use a **secret** / `service_role` key in the site.
-2. Put them in `js/config.js`:
+### Remove someone
+**Authentication → Users** → delete the user. Their progress row is removed automatically (`on delete cascade`).
+
+## Settings to keep in Supabase
+| Where | Setting |
+|---|---|
+| Authentication → Sign In / Providers | **Allow new users to sign up: on** (the database trigger limits it to `@swiftant.com`) |
+| Authentication → Sign In / Providers → Email | Enabled; **Confirm email: off** |
+| Authentication → URL Configuration | **Site URL** and **Redirect URLs** = the site's live address (see below) |
+
+**Live address today:** `https://aravintht-debug.github.io/SRE-learning/`
+**Planned address:** `https://sre-learning.github.io/`. When the repo moves to the `SRE-Learning` organization, update the Site URL and Redirect URLs to this address, or sign-in stops working there. Add `http://localhost:8080/` to Redirect URLs if you test locally.
+
+## Rebuilding from scratch
+Only needed if the Supabase project is lost or you set up a copy.
+1. At https://supabase.com, create a **New project** on the free plan. Keep the database password in a password manager; the site never uses it.
+2. **SQL Editor → New query**: paste [`supabase/schema.sql`](supabase/schema.sql) and click **Run**. It is safe to re-run.
+3. Apply the settings in the table above.
+4. **Project Settings → API Keys**: copy the **Project URL** and the **publishable** key (`sb_publishable_…`) into `js/config.js`:
    ```js
    supabase: {
      url: 'https://YOUR-PROJECT.supabase.co',
-     anonKey: 'eyJhbGciOi...',
+     anonKey: 'sb_publishable_...',
    },
    ```
-3. Commit and push. GitHub Pages redeploys in about a minute.
+   The publishable key is safe in a browser because row-level security protects the data. **Never** put a secret / `service_role` key in the site.
+5. Commit and push. GitHub Pages redeploys in about a minute.
 
-## How it works
-- A **Sign in** button appears in the header. The user enters their email, clicks the link in their inbox (in the same browser), and is signed in.
-- On sign-in, local and cloud progress are **merged** (nothing is lost), and every later change syncs automatically.
-- The table has row-level security: every signed-in member can *read* the team's progress, but each person can only *write* their own row.
-- To remove someone, delete them under Authentication → Users. Their progress row is deleted with them.
-
-## Add someone
-Send them the site link. They choose **Sign up** with their @swiftant.com email and a password.
-
-## Reset a forgotten password
-The free email sender can't reach colleagues, so the simplest reset is: Supabase dashboard → **Authentication → Users** → delete the user, and they sign up again. Their progress row is removed with them.
-
-## Remove someone
-Delete them under Authentication → Users. Their progress row is removed automatically.
+## Possible upgrade
+To verify identities properly, switch to **Sign in with Microsoft** through SwiftAnt's Entra ID (Supabase's Azure provider). It needs an app registration from IT, and then email/password sign-up can be turned off.
