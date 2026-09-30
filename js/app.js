@@ -268,15 +268,32 @@
       '<div class="flex justify-between gap-3 mt-5 pb-6"><a class="btn-ghost btn-sm" href="' + prev + '">← Back</a><a class="btn-ghost btn-sm" href="' + next + '">' + nextLabel + '</a></div>' +
       '</div></section>' +
       '<div class="lab-handle" id="lab-handle" role="separator" aria-orientation="vertical" title="Drag to resize"></div>' +
-      (guide ? guidePane(step) + '</div>' : playgroundPane(step, hasTools));
+      (guide ? guidePane(step, mod.week) + '</div>' : playgroundPane(step, hasTools));
   }
 
-  function guidePane(step) {
-    const where = { 'claude.ai': 'https://claude.ai/new', 'Claude Code': 'https://code.claude.com/docs', 'Cowork': 'https://claude.com/docs/cowork/overview', 'Claude for Excel': 'https://claude.com/docs/office-agents/excel', 'Claude for Word': 'https://claude.com/docs/office-agents/word', 'Claude for PowerPoint': 'https://claude.com/docs/office-agents/powerpoint' };
+  /* "Run it in your SRE Learning workspace": where and how to do this step, generated from the step's prompts (js/workspace.js). */
+  function workspaceCard(step, week) {
+    const WS = PL.WS;
+    if (!WS || step.workspace === 'setup') return '';
+    const blocks = WS.runSteps(step, week).map((b) => '<div class="px-3 pt-3"><div class="text-xs font-semibold text-brand-300">' + esc(b.title) + '</div>' +
+      '<ol class="task-list mt-1.5 text-sm">' + b.items.map((x) => '<li>' + x + '</li>').join('') + '</ol></div>').join('');
+    return '<div class="guide-card"><div class="guide-hdr"><span>▶ Run it in your ' + esc(WS.project) + ' workspace</span>' +
+      '<a class="text-[11px] text-brand-300 hover:underline" href="#/m/' + MODS[0].id + '/lab/1">First time? Set it up ↗</a></div>' + blocks + '<div class="pb-3"></div></div>';
+  }
+  function notesCard(step, week) {
+    const WS = PL.WS;
+    if (!WS || step.workspace !== 'step') return '';
+    return '<div class="guide-card"><div class="guide-hdr"><span>✎ Save it to your notes</span></div>' +
+      '<p class="text-xs text-slate-400 px-3 pt-2">Append this to <code>' + esc(WS.notesFile(week)) + '</code> and fill it in. The week wrap-up step turns these notes into your Project knowledge.</p>' +
+      '<div class="codeblock m-3"><div class="codeblock-bar"><span>markdown</span><button class="btn-copy" data-action="copy-pre">Copy</button></div><pre class="whitespace-pre-wrap">' + esc(WS.noteTemplate(step)) + '</pre></div></div>';
+  }
+
+  function guidePane(step, week) {
+    const where = { 'claude.ai': 'https://claude.ai/projects', 'Claude Code': 'https://code.claude.com/docs', 'Cowork': 'https://claude.com/docs/cowork/overview', 'Claude for Excel': 'https://claude.com/docs/office-agents/excel', 'Claude for Word': 'https://claude.com/docs/office-agents/word', 'Claude for PowerPoint': 'https://claude.com/docs/office-agents/powerpoint' };
     return '<section class="lab-right" aria-label="Do it in Claude">' +
       '<div class="pg-toolbar"><div class="font-semibold text-white text-sm px-1">Do it in Claude</div>' +
-      '<a class="btn-run" href="https://claude.ai/new" target="_blank" rel="noopener noreferrer">Open claude.ai ↗</a></div>' +
-      '<div class="guide-body">' +
+      '<a class="btn-run" href="https://claude.ai/projects" target="_blank" rel="noopener noreferrer">Open my Projects ↗</a></div>' +
+      '<div class="guide-body">' + workspaceCard(step, week) +
       (step.prompts || []).map((p, i) => '<div class="guide-card"><div class="guide-hdr"><span><span class="guide-num">' + (i + 1) + '</span> ' + esc(p.label) + '</span>' +
         (where[p.where] ? '<a class="text-[11px] text-brand-300 hover:underline" href="' + where[p.where] + '" target="_blank" rel="noopener noreferrer">' + esc(p.where) + ' ↗</a>' : '<span class="text-[11px] text-slate-500">' + esc(p.where || '') + '</span>') + '</div>' +
         (p.note ? '<p class="text-xs text-slate-400 px-3 pt-2">' + p.note + '</p>' : '') +
@@ -284,6 +301,7 @@
       (step.expected && step.expected.length ? '<div class="guide-card"><div class="guide-hdr"><span>✓ What a good result looks like</span></div><ul class="grid gap-1.5 p-3 text-sm text-slate-300">' +
         step.expected.map((x) => '<li class="flex gap-2"><span class="text-emerald-400">•</span><span>' + esc(x) + '</span></li>').join('') + '</ul></div>' : '') +
       (step.verify ? '<div class="guide-card"><div class="guide-hdr"><span>⚠ Verify before you trust it</span></div><p class="p-3 text-sm text-slate-300">' + esc(step.verify) + '</p></div>' : '') +
+      notesCard(step, week) +
       '<p class="text-xs text-slate-500 px-1 pb-6">Tick the checks on the left once you have done each part in Claude. Never paste secrets, customer data, or production credentials into a prompt.</p>' +
       '</div></section>';
   }

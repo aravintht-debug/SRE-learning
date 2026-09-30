@@ -104,6 +104,13 @@ for (const w of weeks) {
         if (!Array.isArray(s.prompts) || !s.prompts.length) err(P, 'guide step needs prompts');
         (s.prompts || []).forEach((p, i) => { if (!nonEmpty(p.label) || !nonEmpty(p.where) || !nonEmpty(p.text)) err(P, 'prompt ' + i + ' needs label/where/text'); });
         if (s.checks.some((c) => !c.manual)) err(P, 'guide steps may only have manual checks');
+        /* every guide step runs in the learner's SRE Learning workspace (js/workspace.js) */
+        if (PL.WS) {
+          (s.prompts || []).forEach((p, i) => { if (!PL.WS.SURFACES.includes(p.where)) err(P, 'prompt ' + i + ' where "' + p.where + '" is not a known Claude surface: ' + PL.WS.SURFACES.join(', ')); });
+          if (!['setup', 'wrap', 'step'].includes(s.workspace)) err(P, 'guide step is not wired into the SRE Learning workspace');
+          if (s.workspace === 'step' && !['ws-run', 'ws-note'].every((id) => s.checks.some((c) => c.id === id))) err(P, 'guide step missing workspace checks ws-run / ws-note');
+          if (s.workspace !== 'setup' && !PL.WS.runSteps(s, w.week).length) err(P, 'no workspace run instructions generated');
+        }
         continue;
       }
 
@@ -131,6 +138,16 @@ for (const w of weeks) {
       if (ctx.final) memory[s.id] = { output_tokens: ctx.turns.reduce((a, x) => a + ((x.usage && x.usage.output_tokens) || 0), 0), ms: 1000, mode: 'sim' };
     }
   }
+}
+
+if (!PL.WS) err('js/workspace.js', 'SRE Learning workspace module not loaded');
+else if (!onlyWeek || onlyWeek === 1) {
+  const w1 = weeks.find((w) => w.week === 1);
+  if (w1 && w1.topics[0].steps[0].id !== 'w01-t1-s0') err('week 1', 'the workspace setup step must be the very first step');
+}
+for (const w of weeks) {
+  if (onlyWeek && w.week !== onlyWeek) continue;
+  if (!w.topics.some((t) => t.steps.some((s) => s.workspace === 'wrap'))) err('week ' + w.week, 'missing the week wrap-up step');
 }
 
 /* ---- programme-level rules ---- */

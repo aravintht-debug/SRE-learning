@@ -70,6 +70,15 @@
     box(830, 40, 140, 70, 'Team view', 'see each other', C.green),
     'Figure 5 · Login and progress sync');
 
+  const flowWorkspace = () => svg(980, 150,
+    box(10, 40, 180, 70, 'Week 1 · Step 0', 'set up once', C.blue) + arrow(190, 75, 215, 75) +
+    box(215, 40, 185, 70, 'Every guide step', 'Project chat or week folder', C.purple) + arrow(400, 75, 425, 75) +
+    box(425, 40, 175, 70, 'Notes + evidence', 'week-NN/notes.md', C.amber) + arrow(600, 75, 625, 75) +
+    box(625, 40, 170, 70, 'Week wrap-up', 'summary → Project files', C.green) + arrow(795, 75, 820, 75) +
+    box(820, 40, 150, 70, 'Next week', 'Claude knows it all', C.pink) +
+    '<path d="M895 110 Q895 140 490 140 Q307 140 307 112" fill="none" stroke="' + C.sub + '" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#ah)"/>',
+    'Figure 3a · Your SRE Learning workspace grows every week');
+
   /* ---------- page ---------- */
   const sec = (id, title, body) => '<section id="hb-' + id + '" class="hb-sec"><h2>' + title + '</h2>' + body + '</section>';
   const card = (t, d) => '<div class="card p-4"><div class="font-semibold text-white">' + t + '</div><div class="text-sm text-slate-300 mt-1 leading-relaxed">' + d + '</div></div>';
@@ -109,7 +118,15 @@
         card('"Do it in Claude" steps (guided)', 'The right pane shows <b>copy-ready prompts</b> and says where to run each one (claude.ai, Claude Code, Cowork, Claude for Excel…). You do the work in <b>your own Claude</b>, on your own tasks, then tick the manual checks. Each step also shows what a good result looks like and how to verify it against the docs. This is how you build the real skill.') +
         card('API playground steps (auto-checked)', 'The right pane shows the <b>actual request</b> sent to Claude. Press <b>Run</b>: Claude answers, tools run, and the checks on the left verify the answer automatically, for example "uses <code>--sku Standard</code>", "no hard-coded secret" or "flags the prompt injection". Without an API key you see a pre-recorded expert answer, so every lab still works.') + '</div>' +
         flowLab() +
-        '<p>Most topics have both kinds: first you see the pattern work and get checked in the playground, then you apply it to your own work in Claude.</p>') +
+        '<p>Most topics have both kinds: first you see the pattern work and get checked in the playground, then you apply it to your own work in Claude.</p>' +
+        '<h3 class="font-semibold text-white mt-6">Where you do it: your SRE Learning workspace</h3>' +
+        '<p>Every "Do it in Claude" step runs in the <b>same place</b>, so you can see and reuse everything you did across the 20 weeks. <b>Week 1 › Step 0</b> sets it up once:</p>' +
+        '<div class="grid sm:grid-cols-3 gap-3 my-3">' +
+        card('claude.ai Project "SRE Learning"', 'Project instructions describe you, the programme and the safety rules; <code>my-environment.md</code> in its knowledge describes your stack. Each step is a new chat <b>inside the Project</b>, named with the step ID (e.g. <code>W07-T2-S1 · …</code>).') +
+        card('Folder ~/sre-learning-workspace', 'A git repo built by Claude Code, with <code>week-01</code> … <code>week-20</code>, a <code>CLAUDE.md</code> of rules and a <code>.gitignore</code> for secrets. Claude Code and Cowork steps run in that week\'s folder, and you commit when a step works.') +
+        card('Notes, then wrap-up', 'After each step, add an entry to <code>week-NN/notes.md</code>: what you did, what you verified, and the evidence. The last step of each week turns the notes into a summary that you add to the Project knowledge.') + '</div>' +
+        flowWorkspace() +
+        '<p>Each guide step\'s right pane starts with <b>"Run it in your SRE Learning workspace"</b>: the exact steps for claude.ai, Claude Code, Cowork or Claude for Microsoft 365, depending on where its prompts run. Each step also has two checks, <i>ran it in the workspace</i> and <i>added it to my notes</i>.</p>') +
 
       sec('json', '4. Why there is JSON in the labs',
         '<p>You see JSON in two places, and both matter for DevOps work:</p>' +
