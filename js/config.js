@@ -1,9 +1,9 @@
 /* SRE Learning · site config. */
 window.PL = window.PL || {};
 window.PL.SITE = {
-  owner: 'SRE-Learning', // GitHub organization
-  repo: 'sre-learning.github.io', // an <org>.github.io repo is served from the root of that domain
-  siteUrl: 'https://sre-learning.github.io/',
+  owner: 'aravintht-debug',
+  repo: 'SRE-learning', // GitHub Pages paths are case-sensitive: /SRE-learning/
+  siteUrl: 'https://aravintht-debug.github.io/SRE-learning/',
   /* Optional login + progress sync (see SETUP-LOGIN.md). Leave empty to disable.
      The anon key is public by design; the database is protected by row-level security. */
   allowedEmailDomain: 'swiftant.com', // only this domain can sign up (also enforced in the database)

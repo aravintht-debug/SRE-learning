@@ -8,7 +8,7 @@ KodeKloud-style, hands-on learning for SwiftAnt's 20-week SRE programme. Every t
 
 The Azure certification track is **AZ-104** (Microsoft Azure Administrator), mapped onto the programme's certification slots. The whole site is plain static files (HTML, Tailwind CDN, vanilla JS) with no build step.
 
-**New here? Read the [Handbook](https://sre-learning.github.io/#/handbook)**. It explains how the course works, what the labs' JSON and Python are for, how the site is built and deployed, and why login uses Supabase, with flow diagrams.
+**New here? Read the [Handbook](https://aravintht-debug.github.io/SRE-learning/#/handbook)**. It explains how the course works, what the labs' JSON and Python are for, how the site is built and deployed, and why login uses Supabase, with flow diagrams.
 
 ## The 20 weeks
 
