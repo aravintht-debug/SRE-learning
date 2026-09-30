@@ -42,12 +42,31 @@
     if (now) send(); else pushTimer = setTimeout(send, 800);
   }
 
+  /* Email links (confirm sign-up, reset password) come back as <siteUrl>?confirmed=1&code=… or ?reset=1&code=… (PKCE).
+     The query string never clashes with the #/ router. */
+  const home = () => (PL.SITE && PL.SITE.siteUrl) || (location.origin + location.pathname);
+  const readLink = () => {
+    const q = new URLSearchParams(location.search), h = new URLSearchParams(location.hash.replace(/^#/, ''));
+    const error = q.get('error_description') || h.get('error_description');
+    return { code: q.has('code'), confirmed: q.has('confirmed'), reset: q.has('reset'), error: error ? error.replace(/\+/g, ' ') : '' };
+  };
+  const cleanUrl = () => { if (location.search || /error_description|access_token/.test(location.hash)) history.replaceState(null, '', location.pathname + (/^#\//.test(location.hash) ? location.hash : '')); };
+
   async function init(localGetter, applyMerged, userChanged) {
     getLocal = localGetter; apply = applyMerged; onUser = userChanged || onUser;
     if (!enabled) return;
-    client = window.supabase.createClient(cfg.url, cfg.anonKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
+    const linkState = readLink(); // before the client consumes ?code=
+    client = window.supabase.createClient(cfg.url, cfg.anonKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: 'pkce' } });
+    let recovery = false;
+    client.auth.onAuthStateChange((event) => { if (event === 'PASSWORD_RECOVERY') recovery = true; }); // registered before the URL is processed
     const { data } = await client.auth.getSession();
     user = data.session ? data.session.user : null;
+    /* tell the UI what the email link did */
+    if (linkState.error) PL.sync.notice = { kind: 'error', text: 'That email link did not work: ' + linkState.error + '. Request a new one below.' };
+    else if (user && (recovery || linkState.reset)) PL.sync.notice = { kind: 'reset' };
+    else if (user && linkState.confirmed) PL.sync.notice = { kind: 'ok', text: 'Email confirmed. Welcome to SRE Learning.' };
+    else if (!user && linkState.code) PL.sync.notice = { kind: 'info', text: linkState.reset ? 'Open the reset link in the same browser where you asked for it, or request a new one.' : 'Your email is confirmed. Sign in with your password.' };
+    cleanUrl();
     onUser(user);
     client.auth.onAuthStateChange((event, session) => {
       const was = user && user.id;
@@ -67,20 +86,37 @@
     if (/database error saving new user|only @/i.test(msg)) return 'Only @' + (domain || 'company') + ' email addresses can sign up.';
     if (/signups not allowed|signup is disabled/i.test(msg)) return 'Sign-up is currently closed. Ask the site owner.';
     if (/password should be|weak password|at least/i.test(msg)) return 'Choose a stronger password: at least 8 characters with letters and numbers.';
+    if (/email not confirmed/i.test(msg)) return 'Confirm your email first: click the link we sent to your inbox (check Junk too). Use "Resend email" if it has not arrived.';
+    if (/rate limit|too many/i.test(msg)) return 'Too many emails were requested. Wait a few minutes and try again.';
+    if (/error sending|not authorized|smtp/i.test(msg)) return 'The site could not send the email right now. Ask the site owner.';
     return msg;
   };
 
   async function signIn(email, password) {
     checkEmail(email);
     const { error } = await client.auth.signInWithPassword({ email, password });
-    if (error) throw new Error(friendly(error.message));
+    if (error) { const e = new Error(friendly(error.message)); e.unconfirmed = /email not confirmed/i.test(error.message); throw e; }
   }
+  /* Returns 'signed-in' (email confirmation off) or 'check-inbox' (confirmation on: the account works after the link is clicked). */
   async function signUp(email, password) {
     checkEmail(email);
     if ((password || '').length < 8) throw new Error('Password must be at least 8 characters.');
-    const { data, error } = await client.auth.signUp({ email, password });
+    const { data, error } = await client.auth.signUp({ email, password, options: { emailRedirectTo: home() + '?confirmed=1' } });
     if (error) throw new Error(friendly(error.message));
-    if (!data.session) throw new Error('Account created, but email confirmation is required. Ask the site owner to turn off "Confirm email" in Supabase, or confirm from your inbox.');
+    if (data.session) return 'signed-in';
+    // With confirmation on, Supabase hides whether the address is taken: an existing account comes back with no identities.
+    if (data.user && Array.isArray(data.user.identities) && !data.user.identities.length) throw new Error('An account with this email already exists. Use Sign in, or Forgot password.');
+    return 'check-inbox';
+  }
+  async function resendConfirmation(email) {
+    checkEmail(email);
+    const { error } = await client.auth.resend({ type: 'signup', email, options: { emailRedirectTo: home() + '?confirmed=1' } });
+    if (error) throw new Error(friendly(error.message));
+  }
+  async function resetPassword(email) {
+    checkEmail(email);
+    const { error } = await client.auth.resetPasswordForEmail(email, { redirectTo: home() + '?reset=1' });
+    if (error) throw new Error(friendly(error.message));
   }
   async function changePassword(password) {
     if ((password || '').length < 8) throw new Error('Password must be at least 8 characters.');
@@ -101,5 +137,5 @@
     return data || [];
   }
 
-  PL.sync = { enabled, domain, init, push, signIn, signUp, signOut, changePassword, team, merge, user: () => user };
+  PL.sync = { enabled, domain, init, push, signIn, signUp, resendConfirmation, resetPassword, signOut, changePassword, team, merge, user: () => user, notice: null };
 })();

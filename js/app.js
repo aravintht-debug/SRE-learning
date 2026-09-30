@@ -586,11 +586,22 @@
     const step = S.route && S.route.step;
     if (a === 'settings') { openSettings(); return; }
     if (a === 'print') { window.print(); return; }
-    if (a === 'auth') { $('#auth-status').textContent = ''; $('#auth-newpass').value = ''; $('#auth').hidden = false; return; }
+    if (a === 'auth') { $('#auth-status').textContent = ''; $('#auth-newpass').value = ''; $('#auth-reset').hidden = true; $('#auth').hidden = false; return; }
     if (a === 'close-auth') { $('#auth').hidden = true; return; }
     if (a === 'gate-tab') { setGateMode(t.dataset.tab); return; }
+    if (a === 'gate-forgot' || a === 'gate-resend') {
+      const email = $('#gate-email').value.trim();
+      if (!email) { gateMsg('Enter your company email above first.', 'error'); $('#gate-email').focus(); return; }
+      t.disabled = true;
+      try {
+        if (a === 'gate-forgot') { await PL.sync.resetPassword(email); gateMsg('If an account exists for ' + email + ', a password reset link is on its way. Check your inbox and Junk, and open the link in this browser.', 'ok'); }
+        else { await PL.sync.resendConfirmation(email); gateMsg('Confirmation email sent again to ' + email + '. Check your inbox and Junk.', 'ok'); }
+      } catch (err) { gateMsg(err.message, 'error'); }
+      finally { t.disabled = false; }
+      return;
+    }
     if (a === 'auth-changepass') {
-      try { await PL.sync.changePassword($('#auth-newpass').value); $('#auth-newpass').value = ''; $('#auth-status').innerHTML = '<span class="text-emerald-300">Password updated.</span>'; }
+      try { await PL.sync.changePassword($('#auth-newpass').value); $('#auth-newpass').value = ''; $('#auth-reset').hidden = true; $('#auth-status').innerHTML = '<span class="text-emerald-300">Password updated.</span>'; }
       catch (err) { $('#auth-status').innerHTML = '<span class="text-red-300">' + esc(err.message) + '</span>'; }
       return;
     }
@@ -703,6 +714,20 @@
     $('#gate-password').autocomplete = mode === 'signup' ? 'new-password' : 'current-password';
     $('#gate-submit').textContent = mode === 'signup' ? 'Create account' : 'Sign in';
     $('#gate-status').textContent = '';
+    $('#gate-resend').hidden = true;
+  }
+  function gateMsg(text, kind) {
+    const cls = { error: 'text-red-300', ok: 'text-emerald-300', info: 'text-slate-300' }[kind] || 'text-slate-300';
+    $('#gate-status').innerHTML = '<span class="' + cls + '">' + esc(text) + '</span>';
+  }
+  /* one-time message after an email link (confirm / reset / expired), set by PL.sync.init */
+  function showNotice(user) {
+    const n = PL.sync.notice;
+    if (!n) return;
+    PL.sync.notice = null;
+    if (n.kind === 'reset' && user) { $('#auth-status').textContent = ''; $('#auth-newpass').value = ''; $('#auth-reset').hidden = false; $('#auth').hidden = false; setTimeout(() => $('#auth-newpass').focus(), 30); }
+    else if (user) toast(n.text, n.kind === 'error' ? 'error' : 'ok');
+    else gateMsg(n.text, n.kind === 'error' ? 'error' : 'info');
   }
   function renderAuth(user) {
     const btn = $('#auth-btn');
@@ -720,6 +745,7 @@
       $('#gate-password').value = ''; $('#gate-confirm').value = '';
       setTimeout(() => $('#gate-email').focus(), 30);
     }
+    showNotice(user);
   }
   document.addEventListener('submit', async (e) => {
     if (e.target.id !== 'gate-form') return;
@@ -727,8 +753,19 @@
     const email = $('#gate-email').value.trim(), pass = $('#gate-password').value, status = $('#gate-status'), btn = $('#gate-submit');
     if (gateMode === 'signup' && pass !== $('#gate-confirm').value) { status.innerHTML = '<span class="text-red-300">Passwords do not match.</span>'; return; }
     btn.disabled = true; status.textContent = gateMode === 'signup' ? 'Creating your account…' : 'Signing in…';
-    try { if (gateMode === 'signup') await PL.sync.signUp(email, pass); else await PL.sync.signIn(email, pass); status.textContent = ''; }
-    catch (err) { status.innerHTML = '<span class="text-red-300">' + esc(err.message) + '</span>'; }
+    $('#gate-resend').hidden = true;
+    try {
+      if (gateMode === 'signup') {
+        if ((await PL.sync.signUp(email, pass)) === 'check-inbox') {
+          setGateMode('signin'); $('#gate-email').value = email;
+          gateMsg('Almost done: we sent a confirmation link to ' + email + '. Open it (check Junk too), then sign in here with your password.', 'ok');
+          $('#gate-resend').hidden = false;
+          return;
+        }
+      } else await PL.sync.signIn(email, pass);
+      status.textContent = '';
+    }
+    catch (err) { gateMsg(err.message, 'error'); if (err.unconfirmed) $('#gate-resend').hidden = false; }
     finally { btn.disabled = false; }
   });
   async function renderTeam() {
