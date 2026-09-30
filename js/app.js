@@ -720,12 +720,30 @@
     const cls = { error: 'text-red-300', ok: 'text-emerald-300', info: 'text-slate-300' }[kind] || 'text-slate-300';
     $('#gate-status').innerHTML = '<span class="' + cls + '">' + esc(text) + '</span>';
   }
+  /* invite-only mode (PL.SITE.selfSignup === false): sign-in only, no self-service email flows */
+  function applyInviteOnly() {
+    if (!PL.sync || PL.sync.selfSignup) return;
+    $('#gate-tabs').style.display = 'none'; // .tabs sets display, which beats [hidden]
+    $('#gate-forgot').hidden = true; $('#gate-resend').hidden = true;
+    $('#gate-hint').textContent = 'Invite-only: accounts are created by the site owner for @swiftant.com colleagues.';
+    $('#gate-note').textContent = 'No account yet, or forgot your password? Ask the site owner: they send you a temporary password on Teams, and you choose your own after signing in. Your Claude API key is never stored in your account; it stays in your browser.';
+  }
+  function openAccount(message) {
+    $('#auth-status').textContent = ''; $('#auth-newpass').value = '';
+    $('#auth-reset').textContent = message; $('#auth-reset').hidden = false; $('#auth').hidden = false;
+    setTimeout(() => $('#auth-newpass').focus(), 30);
+  }
+  let promptedTemp = false;
   /* one-time message after an email link (confirm / reset / expired), set by PL.sync.init */
   function showNotice(user) {
+    if (user && !PL.sync.selfSignup && !promptedTemp && !(user.user_metadata || {}).password_changed) {
+      promptedTemp = true;
+      openAccount('Welcome! You signed in with a temporary password from the site owner. Choose your own password now (8+ characters) and press Update.');
+    }
     const n = PL.sync.notice;
     if (!n) return;
     PL.sync.notice = null;
-    if (n.kind === 'reset' && user) { $('#auth-status').textContent = ''; $('#auth-newpass').value = ''; $('#auth-reset').hidden = false; $('#auth').hidden = false; setTimeout(() => $('#auth-newpass').focus(), 30); }
+    if (n.kind === 'reset' && user) openAccount('You opened a password reset link. Choose a new password below and press Update.');
     else if (user) toast(n.text, n.kind === 'error' ? 'error' : 'ok');
     else gateMsg(n.text, n.kind === 'error' ? 'error' : 'info');
   }
@@ -780,6 +798,7 @@
   }
   PL.renderTeam = renderTeam;
   if (PL.sync && PL.sync.enabled) {
+    applyInviteOnly();
     document.body.classList.add('locked');
     $('#gate').hidden = false;
     PL.sync.init(() => S.progress, (merged) => {

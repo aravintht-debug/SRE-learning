@@ -8,6 +8,7 @@
   const { store } = PL.util;
   const cfg = (PL.SITE && PL.SITE.supabase) || {};
   const domain = ((PL.SITE && PL.SITE.allowedEmailDomain) || '').toLowerCase();
+  const selfSignup = !(PL.SITE && PL.SITE.selfSignup === false); // false = invite-only: the site owner creates accounts
   const enabled = !!(cfg.url && cfg.anonKey && window.supabase && window.supabase.createClient);
   let client = null, user = null, pushTimer = null, onUser = () => {}, getLocal = () => ({}), apply = () => {};
 
@@ -99,6 +100,7 @@
   }
   /* Returns 'signed-in' (email confirmation off) or 'check-inbox' (confirmation on: the account works after the link is clicked). */
   async function signUp(email, password) {
+    if (!selfSignup) throw new Error('Accounts are created by the site owner. Ask them for access.');
     checkEmail(email);
     if ((password || '').length < 8) throw new Error('Password must be at least 8 characters.');
     const { data, error } = await client.auth.signUp({ email, password, options: { emailRedirectTo: home() + '?confirmed=1' } });
@@ -120,7 +122,7 @@
   }
   async function changePassword(password) {
     if ((password || '').length < 8) throw new Error('Password must be at least 8 characters.');
-    const { error } = await client.auth.updateUser({ password });
+    const { error } = await client.auth.updateUser({ password, data: { password_changed: true } }); // clears the "choose your own password" prompt
     if (error) throw new Error(friendly(error.message));
   }
   async function signOut() {
@@ -137,5 +139,5 @@
     return data || [];
   }
 
-  PL.sync = { enabled, domain, init, push, signIn, signUp, resendConfirmation, resetPassword, signOut, changePassword, team, merge, user: () => user, notice: null };
+  PL.sync = { enabled, domain, selfSignup, init, push, signIn, signUp, resendConfirmation, resetPassword, signOut, changePassword, team, merge, user: () => user, notice: null };
 })();
