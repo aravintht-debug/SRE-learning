@@ -292,9 +292,9 @@
     steps: [
       {
         id: 'w12-t1-s1', kind: 'guide', title: 'Study coach and sandbox monitoring baseline', minutes: 60, source: SRC.az104,
-        scenario: 'Drill the monitoring objectives with your AZ-104 study Project, then build a small monitoring baseline in a sandbox and test Network Watcher tools.',
+        scenario: 'Drill the monitoring objectives with your SRE Learning Project, then build a small monitoring baseline in a sandbox and test Network Watcher tools.',
         task: [
-          'Run prompt 1 in your "AZ-104 study" Project and answer each question before reading the explanation.',
+          'Run prompt 1 in your SRE Learning Project and answer each question before reading the explanation.',
           'Run prompt 2 and build the baseline in a sandbox subscription. Then use IP flow verify and next hop on one VM.',
           'Delete the sandbox resource group when you finish.',
         ],
@@ -304,7 +304,7 @@
         ],
         expected: ['10 practice questions answered with explanations reviewed', 'Perf and Syslog data visible in the workspace', 'A test alert email received, and IP flow verify and next hop results understood'],
         verify: 'Check the commands against the Azure Monitor diagnostic settings, action groups and Network Watcher docs before running them. Confirm the data arrives with a quick Perf | take 10.',
-        atWork: 'Build the baseline once, save it as a script or Bicep module, and apply it to every new subscription. Use the study Project whenever an alert or KQL question comes up on call.',
+        atWork: 'Build the baseline once, save it as a script or Bicep module, and apply it to every new subscription. Use the SRE Learning Project whenever an alert or KQL question comes up on call.',
         checks: [
           { id: 'quiz', label: 'I answered 10 practice questions and reviewed the explanations', manual: true },
           { id: 'baseline', label: 'I built the sandbox baseline and saw data and a test alert', manual: true },

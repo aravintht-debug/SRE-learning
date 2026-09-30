@@ -428,7 +428,7 @@
     leverage: [
       { t: 'Access reviews in minutes', d: 'Export az role assignment list output (redacted) and ask Claude to flag broad scopes, guests with Owner, orphaned principals and redundant assignments, with the least-privilege fix for each.' },
       { t: 'Governance as code', d: 'Have Claude draft policy assignments, locks, tags and budgets as az CLI, Bicep or Terraform for a sandbox, then review every scope and effect before promoting.' },
-      { t: 'Study coach', d: 'Ask your AZ-104 Project for "what is the effective access" puzzles combining inheritance, groups and deny assignments; they are a favourite exam scenario.' },
+      { t: 'Study coach', d: 'Ask your SRE Learning Project for "what is the effective access" puzzles combining inheritance, groups and deny assignments; they are a favourite exam scenario.' },
     ],
     sources: [SRC.az104, SRC.az104Path, SRC.rbac, SRC.rbacCli, SRC.builtIn, SRC.policy, SRC.mg, SRC.budgets, SRC.advisor],
     quiz: [
@@ -439,8 +439,8 @@
     steps: [
       {
         id: 'w03-t5-s1', kind: 'guide', title: 'Study coach: effective access and governance puzzles', minutes: 40, source: SRC.az104Path,
-        scenario: 'Use your AZ-104 Project to practise the scenarios the exam likes: inherited access, additive roles, policy versus RBAC, locks and budgets. Do the hands-on in a sandbox subscription.',
-        task: ['Work through the Microsoft Learn modules on Azure RBAC, Azure Policy and subscriptions/governance in the AZ-104 identities path.', 'In your AZ-104 Project, run prompt 1 and answer; then prompt 2 for the ones you missed.', 'Do the lab in prompt 3 in a sandbox subscription.'],
+        scenario: 'Use your SRE Learning Project to practise the scenarios the exam likes: inherited access, additive roles, policy versus RBAC, locks and budgets. Do the hands-on in a sandbox subscription.',
+        task: ['Work through the Microsoft Learn modules on Azure RBAC, Azure Policy and subscriptions/governance in the AZ-104 identities path.', 'In your SRE Learning Project, run prompt 1 and answer; then prompt 2 for the ones you missed.', 'Do the lab in prompt 3 in a sandbox subscription.'],
         prompts: [
           { label: 'Effective access puzzles', where: 'claude.ai', text: 'Using the AZ-104 skills outline in this Project, give me 6 "what is the effective access?" puzzles. Each should combine two or more of: management group inheritance, group membership, additive roles, a deny assignment, an Azure Policy deny, a CanNotDelete or ReadOnly lock. Four options each; hold the answers until I reply.' },
           { label: 'Explain the misses', where: 'claude.ai', text: 'My answers: [paste]. For each wrong one, walk through how Azure evaluates it step by step (deny assignments, role assignments at each scope, policy, locks) and name the Microsoft Learn article to confirm it.' },

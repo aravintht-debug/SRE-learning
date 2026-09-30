@@ -173,9 +173,9 @@
     steps: [
       {
         id: 'w08-t1-s1', kind: 'guide', title: 'Study coach and a sandbox container app', minutes: 45, source: SRC.acaScale,
-        scenario: 'Use your AZ-104 study Project for the container objectives, then deploy a small container app in a sandbox and watch it scale.',
+        scenario: 'Use your SRE Learning Project for the container objectives, then deploy a small container app in a sandbox and watch it scale.',
         task: [
-          'Run prompt 1 in your AZ-104 study Project and answer each question before reading the explanation.',
+          'Run prompt 1 in your SRE Learning Project and answer each question before reading the explanation.',
           'Run prompt 2 in Claude Code, deploy in a sandbox, and generate some load (for example with a simple loop of curl requests).',
           'Watch the replica count change, then delete the resource group.',
         ],
@@ -252,7 +252,7 @@
         id: 'w08-t2-s1', kind: 'guide', title: 'Study coach: domains, TLS and backup in a sandbox', minutes: 45, source: SRC.domain,
         scenario: 'Use Claude as a study coach for App Service, then practise a custom domain, a managed certificate and a backup restore in a sandbox.',
         task: [
-          'Run prompt 1 in your AZ-104 study Project.',
+          'Run prompt 1 in your SRE Learning Project.',
           'Run prompt 2 and follow the lab in a sandbox. Use a test domain or subdomain you control.',
           'Restore one automatic backup to a new slot and compare it with production.',
         ],

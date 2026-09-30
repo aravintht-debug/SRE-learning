@@ -161,7 +161,7 @@
       { t: 'CLI you can explain', d: 'Ask Claude for the az CLI for each storage task (network rules, SAS, soft delete, lifecycle) with every flag explained, then run it in a sandbox subscription. You learn the exam objectives and end up with scripts for your pipelines.' },
       { t: 'Lifecycle policies from plain English', d: 'Describe the retention rules the business wants and let Claude write the policy JSON. Then check the action names, day counts and the account\'s redundancy (archive is not available on ZRS or GZRS) against the policy structure page.' },
       { t: 'Access review of a storage estate', d: 'Paste a redacted `az storage account list` export and ask Claude to flag accounts with public network access, Shared Key allowed, public blob access, no soft delete or an old TLS version, with the fix command for each.' },
-      { t: 'A study coach that explains wrong answers', d: 'In your AZ-104 Project, ask for scenario questions on SAS types, redundancy and tiers, and have Claude explain why each wrong option is wrong. Verify every explanation on Microsoft Learn.' },
+      { t: 'A study coach that explains wrong answers', d: 'In your SRE Learning Project, ask for scenario questions on SAS types, redundancy and tiers, and have Claude explain why each wrong option is wrong. Verify every explanation on Microsoft Learn.' },
     ],
     sources: [SRC.az104, SRC.firewall, SRC.sas, SRC.filesAuth, SRC.redundancy, SRC.objRepl, SRC.encryption, SRC.azcopy, SRC.tiers, SRC.softDelete, SRC.versioning, SRC.filesSnap, SRC.lcmOverview, SRC.lcmStructure, SRC.lcmConfigure],
     quiz: [
@@ -172,9 +172,9 @@
     steps: [
       {
         id: 'w04-az104-s1', kind: 'guide', title: 'Study coach and sandbox hands-on: secure and protect a storage account', minutes: 45, source: SRC.az104,
-        scenario: 'Use your AZ-104 study Project as a coach, then build a hardened storage account in a <b>sandbox subscription</b> with commands Claude generates and explains.',
+        scenario: 'Use your SRE Learning Project as a coach, then build a hardened storage account in a <b>sandbox subscription</b> with commands Claude generates and explains.',
         task: [
-          'In your "AZ-104 study" Project, run prompt 1 and answer the questions before you look at the explanations.',
+          'In your SRE Learning Project, run prompt 1 and answer the questions before you look at the explanations.',
           'Run prompt 2 to get the sandbox script, read every flag, then run it in Cloud Shell against a sandbox resource group only.',
           'Run prompt 3 with the answers you got wrong, and delete the sandbox resource group when you finish.',
         ],

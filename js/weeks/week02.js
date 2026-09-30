@@ -354,8 +354,8 @@
     steps: [
       {
         id: 'w02-t3-s1', kind: 'guide', title: 'Study coach: Entra users, groups, licences and SSPR', minutes: 40, source: SRC.az104Path,
-        scenario: 'Use the "AZ-104 study" Project you created in Week 1 to learn this skill area, and do the hands-on in a sandbox tenant or the Microsoft Learn exercises. Never practise in production.',
-        task: ['Work through the Microsoft Learn module on configuring users and groups in the AZ-104 identities path.', 'In your AZ-104 Project, run prompt 1, answer the questions, then run prompt 2 on the ones you got wrong.', 'Run prompt 3 and do the lab in a sandbox tenant.'],
+        scenario: 'Use the SRE Learning Project you set up in Week 1 to learn this skill area, and do the hands-on in a sandbox tenant or the Microsoft Learn exercises. Never practise in production.',
+        task: ['Work through the Microsoft Learn module on configuring users and groups in the AZ-104 identities path.', 'In your SRE Learning Project, run prompt 1, answer the questions, then run prompt 2 on the ones you got wrong.', 'Run prompt 3 and do the lab in a sandbox tenant.'],
         prompts: [
           { label: 'Scenario questions', where: 'claude.ai', text: 'Using the AZ-104 skills outline in this Project, give me 8 scenario-style practice questions on "Manage Microsoft Entra users and groups": user types, creating users, dynamic groups, group-based licensing and usage location, external B2B guests, and SSPR scoping and licensing. Four options each. Do not show the answers until I reply.' },
           { label: 'Explain what I got wrong', where: 'claude.ai', text: 'Here are my answers: [paste]. For each wrong one, explain the concept in 3 sentences, why my option was wrong, and the name of the Microsoft Learn article I should read to confirm it.' },

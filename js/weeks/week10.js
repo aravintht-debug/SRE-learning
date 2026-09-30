@@ -194,7 +194,7 @@
       { t: 'Effective rules, explained', d: 'Paste the subnet and NIC NSG rules and the flow. Claude walks both NSGs in priority order and tells you which rule decides, which is how you spot a default rule quietly allowing traffic.' },
       { t: 'Intent vs reality reviews', d: 'Give Claude the security intent ("only web may call app on 8080") with the exported rules, and ask for every flow that breaks it plus the least-privilege fix.' },
       { t: 'Private endpoint rollouts', d: 'Ask for the full sequence (endpoint, DNS zone, VNet link, zone group, then disable public access) with a DNS test at each step, so a DNS gap doesn\'t cause an outage.' },
-      { t: 'Study coach', d: 'Ask your AZ-104 Project for NSG puzzles with two NSGs and ASGs, and check your answers with IP flow verify in a sandbox.' },
+      { t: 'Study coach', d: 'Ask your SRE Learning Project for NSG puzzles with two NSGs and ASGs, and check your answers with IP flow verify in a sandbox.' },
     ],
     sources: [SRC.az104, SRC.nsg, SRC.nsgHow, SRC.asg, SRC.bastion, SRC.svcEp, SRC.pe],
     quiz: [
@@ -207,7 +207,7 @@
         id: 'w10-t1-s1', kind: 'guide', title: 'Study coach: NSG puzzles and IP flow verify', minutes: 60, source: SRC.ipflow,
         scenario: 'Use your AZ-104 Claude Project for NSG/ASG puzzles, then prove the answers in a sandbox with effective security rules and IP flow verify.',
         task: [
-          'In your AZ-104 Project, run prompt 1 and answer each puzzle before looking.',
+          'In your SRE Learning Project, run prompt 1 and answer each puzzle before looking.',
           'Build one of the puzzles in a sandbox subscription (two VMs, a subnet NSG and a NIC NSG) and check your answer with prompt 2\'s commands.',
           'Run prompt 3 to review service vs private endpoints, then delete the sandbox resource group.',
         ],

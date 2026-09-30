@@ -363,7 +363,7 @@
       { t: 'Tools', d: 'Portal, Azure CLI, Azure PowerShell and Cloud Shell. The exam expects you to read and use CLI/PowerShell and ARM/Bicep.', ex: 'az · Az PowerShell · Cloud Shell' },
     ],
     leverage: [
-      { t: 'A study coach Project', d: 'Create a Claude Project with the AZ-104 skills outline as knowledge and ask for a weekly plan, flash cards and practice questions per domain.' },
+      { t: 'A study coach in your Project', d: 'Add the AZ-104 skills outline to your SRE Learning Project knowledge and ask for a weekly plan, flash cards and practice questions per domain.' },
       { t: 'CLI you understand', d: 'Ask Claude to generate az CLI or PowerShell for a task and explain every flag, then run it in a sandbox subscription to learn by doing.' },
       { t: 'Explain the exam scenario', d: 'Paste a practice question you got wrong and ask Claude to explain the concept and why each wrong option is wrong. Verify against Microsoft Learn.' },
     ],
@@ -374,18 +374,18 @@
     ],
     steps: [
       {
-        id: 'w01-t5-s1', kind: 'guide', title: 'Build your AZ-104 study plan in a Claude Project', minutes: 20, source: SRC.az104,
-        scenario: 'Set up a Claude Project as your AZ-104 study coach for the whole programme.',
-        task: ['Create a Project called "AZ-104 study" in claude.ai.', 'Copy the skills-measured section of the official study guide into a text file and add it to the Project knowledge.', 'Run prompts 1 and 2, and pin the plan as an Artifact.'],
+        id: 'w01-t5-s1', kind: 'guide', title: 'Add the AZ-104 track to your SRE Learning Project', minutes: 20, source: SRC.az104,
+        scenario: 'Make your SRE Learning Project your AZ-104 study coach for the whole programme. You keep one Project, so the coach also knows your environment and everything you built in the other labs.',
+        task: ['Open your <b>SRE Learning</b> Project in claude.ai (from Week 1 › Step 0).', 'Copy the skills-measured section of the official study guide into <code>az104-skills-outline.txt</code> and add it to the Project knowledge.', 'Add prompt 1 to the <b>end</b> of the Project instructions. Keep the instructions that are already there.', 'In a new Project chat, run prompt 2 and pin the plan as an Artifact.'],
         prompts: [
-          { label: 'Project instructions', where: 'claude.ai', text: 'You are my AZ-104 study coach. Use only the official skills outline in this Project as the scope. For every topic, explain it briefly, give one hands-on Azure CLI exercise for a sandbox subscription, and link the relevant Microsoft Learn doc title so I can verify. Quiz me when I ask.' },
+          { label: 'Add to the Project instructions', where: 'claude.ai', note: 'Append this to <b>Project → Instructions</b>, below what is already there, not into a chat.', text: 'AZ-104 track: when a chat name contains "AZ-104" or I ask about the exam, act as my AZ-104 study coach. Use only the official skills outline in az104-skills-outline.txt as the scope. For every topic, explain it briefly, give one hands-on Azure CLI exercise for a sandbox subscription, and link the relevant Microsoft Learn doc title so I can verify. Quiz me when I ask.' },
           { label: 'Weekly plan', where: 'claude.ai', text: 'Map the five AZ-104 domains onto my programme weeks: identities (weeks 2–3), storage (4), compute (7–8), networking (9–11), monitor and backup (12–13), review (14, 17–18), exam window (19). For each week give 3 learning goals and 1 hands-on lab. Make it an Artifact table.' },
         ],
-        expected: ['A Project whose knowledge contains the official skills outline', 'A week-by-week plan that covers every domain', 'Hands-on labs you can run in a sandbox subscription'],
+        expected: ['Your SRE Learning Project knowledge now contains the official skills outline, and its instructions include the AZ-104 track', 'A week-by-week plan that covers every domain', 'Hands-on labs you can run in a sandbox subscription'],
         verify: 'Cross-check the plan against the official skills list: every bullet in the study guide should appear somewhere.',
         atWork: 'The same pattern works for any certification or new platform: official outline as knowledge, Claude as the coach, and the official docs as the source of truth.',
         checks: [
-          { id: 'project', label: 'I created the Project with the official skills outline as knowledge', manual: true },
+          { id: 'project', label: 'I added the official skills outline and the AZ-104 track instructions to my SRE Learning Project', manual: true },
           { id: 'plan', label: 'I have a week-by-week plan as an Artifact', manual: true },
         ],
       },

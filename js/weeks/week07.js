@@ -462,9 +462,9 @@
     steps: [
       {
         id: 'w07-t1-s1', kind: 'guide', title: 'Study coach and sandbox what-if', minutes: 40, source: SRC.whatIf,
-        scenario: 'Use your AZ-104 study Project (from Week 1) to learn ARM and Bicep, then deploy a small Bicep file to a <b>sandbox</b> resource group with what-if first.',
+        scenario: 'Use your SRE Learning Project (from Week 1) to learn ARM and Bicep, then deploy a small Bicep file to a <b>sandbox</b> resource group with what-if first.',
         task: [
-          'Open your "AZ-104 study" Project in claude.ai and run prompt 1. Answer the questions before reading the explanations.',
+          'Open your SRE Learning Project in claude.ai and run prompt 1. Answer the questions before reading the explanations.',
           'Run prompt 2 in Claude Code in an empty folder to create a small Bicep file.',
           'Run the what-if command from prompt 3 in a sandbox subscription, read the output, then deploy it and delete the resource group afterwards.',
         ],
@@ -548,7 +548,7 @@
         id: 'w07-t2-s1', kind: 'guide', title: 'Study coach: availability, disks and moves', minutes: 45, source: SRC.availability,
         scenario: 'Use Claude as a study coach for the VM objectives, then do one hands-on change in a sandbox: resize a VM and attach a data disk.',
         task: [
-          'Run prompt 1 in your AZ-104 study Project and answer each question before reading the explanation.',
+          'Run prompt 1 in your SRE Learning Project and answer each question before reading the explanation.',
           'Run prompt 2 and do the lab in a sandbox subscription.',
           'Ask a follow-up for every question you got wrong, and save the explanations to your Project.',
         ],

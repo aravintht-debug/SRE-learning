@@ -381,7 +381,7 @@
       { t: 'Address plans without overlaps', d: 'Give Claude your existing VNets and ask for an IP plan for new spokes that avoids overlaps, leaves room to grow, and keeps subnets sized for the services you plan to use.' },
       { t: 'Explain effective routes', d: 'Paste `az network nic show-effective-route-table` output and ask which route wins for a destination and why. This is a fast way to find a UDR that breaks traffic.' },
       { t: 'CLI you can defend in the exam', d: 'Ask Claude for az CLI plus a one-line reason per flag, then run it in a sandbox and compare with the CLI reference.' },
-      { t: 'A study coach Project', d: 'Keep using the AZ-104 Project from Week 1: ask for scenario questions on peering and UDRs, and have it explain wrong answers against Microsoft Learn.' },
+      { t: 'A study coach Project', d: 'Keep using the SRE Learning Project from Week 1: ask for scenario questions on peering and UDRs, and have it explain wrong answers against Microsoft Learn.' },
     ],
     sources: [SRC.az104, SRC.vnet, SRC.peering, SRC.udr, SRC.pip, SRC.nw, SRC.cliPeering, SRC.cliRoute],
     quiz: [
@@ -394,7 +394,7 @@
         id: 'w09-t3-s1', kind: 'guide', title: 'Study coach: peering and routing drills', minutes: 60, source: SRC.az104,
         scenario: 'Use your AZ-104 Claude Project to drill the networking domain with scenario questions, then build and break a hub-and-spoke in a sandbox subscription.',
         task: [
-          'In your "AZ-104 study" Project, run prompt 1 and answer without notes.',
+          'In your SRE Learning Project, run prompt 1 and answer without notes.',
           'Run prompt 2 for every question you got wrong.',
           'In a sandbox subscription, deploy the hub-and-spoke from the next step, break it on purpose with prompt 3, and fix it using Network Watcher. Delete the resource group afterwards.',
         ],

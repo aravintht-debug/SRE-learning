@@ -456,9 +456,9 @@
     steps: [
       {
         id: 'w11-t2-s1', kind: 'guide', title: 'Study coach: DNS and load balancing drills', minutes: 40, source: SRC.az104,
-        scenario: 'Use your AZ-104 study Project from Week 1 to drill this week\'s networking objectives, then build an internal load balancer in a sandbox.',
+        scenario: 'Use your SRE Learning Project from Week 1 to drill this week\'s networking objectives, then build an internal load balancer in a sandbox.',
         task: [
-          'Open your "AZ-104 study" Project and run prompt 1. Answer the questions before reading the explanations.',
+          'Open your SRE Learning Project and run prompt 1. Answer the questions before reading the explanations.',
           'Run prompt 2 and build the internal load balancer in a sandbox subscription, following the Microsoft quickstart side by side.',
           'Delete the sandbox resource group when you finish. Your Claude Code guardrails will make you do this by hand, and that is intended.',
         ],

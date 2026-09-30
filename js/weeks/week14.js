@@ -269,7 +269,7 @@
       { t: 'Explain wrong answers', d: 'For every miss, know why the right answer is right and why each other option is wrong. That is what moves the score.', ex: '"GRS is readable only after failover"' },
     ],
     leverage: [
-      { t: 'Coach Project', d: 'Use the AZ-104 study Project from Week 1 with the skills outline as knowledge; ask for scenario questions one at a time and an explanation for every wrong answer.' },
+      { t: 'Coach Project', d: 'Use the SRE Learning Project from Week 1 with the skills outline as knowledge; ask for scenario questions one at a time and an explanation for every wrong answer.' },
       { t: 'Practice sets as JSON', d: 'Have Claude generate question sets as JSON with the answer, explanation and Microsoft Learn doc title, so you can load them into a flashcard tool and check each against the doc.' },
       { t: 'Lab the misses', d: 'For each topic you miss, ask Claude for a 10-minute az CLI lab in the sandbox so the concept sticks.' },
     ],
@@ -302,8 +302,8 @@
       },
       {
         id: 'w14-t3-s2', kind: 'guide', title: 'Study coach session and a timed mini-mock', minutes: 120, source: SRC.az104cert,
-        scenario: 'Use your AZ-104 study Project to review domains 1 and 2, explain every wrong answer, then sit a timed mini-mock and plan the fixes.',
-        task: ['Open your "AZ-104 study" Project and run prompt 1; answer one question at a time.', 'Run prompt 2 for a 20-question mini-mock in 30 minutes, with a timer. No notes.', 'Run prompt 3 to turn the misses into a fix plan, and take the free Microsoft Learn practice assessment if you have time.'],
+        scenario: 'Use your SRE Learning Project to review domains 1 and 2, explain every wrong answer, then sit a timed mini-mock and plan the fixes.',
+        task: ['Open your SRE Learning Project and run prompt 1; answer one question at a time.', 'Run prompt 2 for a 20-question mini-mock in 30 minutes, with a timer. No notes.', 'Run prompt 3 to turn the misses into a fix plan, and take the free Microsoft Learn practice assessment if you have time.'],
         prompts: [
           { label: '1 · Coach and explain', where: 'claude.ai', text: 'Coach me on AZ-104 domains 1 and 2 (identities and governance; storage), using only the skills outline in this Project as scope. Ask one scenario question at a time with 4 options. After each answer, tell me if I was right, explain why each option is right or wrong, and name the Microsoft Learn page to verify. After 12 questions, list my weak sub-topics.' },
           { label: '2 · Timed mini-mock', where: 'claude.ai', text: 'Give me a 20-question mini-mock: 11 on identities and governance, 9 on storage, exam style, all questions at once, numbered, with no answers. I have 30 minutes. When I paste my answers, mark them, give my score as a percentage, and explain every question I got wrong.' },

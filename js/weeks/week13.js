@@ -436,7 +436,7 @@
       { t: 'Backup-as-code', d: 'Ask Claude for the az CLI or Bicep for vaults, policies and protection so every environment is backed up the same way, then review it in a PR.' },
       { t: 'Restore-drill runbooks', d: 'Have Claude turn the restore tutorial into your runbook with your resource names and a verification step, then run it in the sandbox and time it.' },
       { t: 'DR decision support', d: 'Ask Claude to explain which failover recovery point to choose (Latest, Latest processed, app-consistent) for a given RPO/RTO, and check against the Site Recovery docs.' },
-      { t: 'Study coach', d: 'Use your AZ-104 Project to quiz you on vault types, redundancy and failover steps, and explain every wrong answer.' },
+      { t: 'Study coach', d: 'Use your SRE Learning Project to quiz you on vault types, redundancy and failover steps, and explain every wrong answer.' },
     ],
     sources: [SRC.az104, SRC.rsv, SRC.bv, SRC.backupCli, SRC.restoreCli, SRC.asrFailover, SRC.backupMon],
     quiz: [
@@ -465,10 +465,10 @@
       },
       {
         id: 'w13-t5-s2', kind: 'guide', title: 'Site Recovery drill and backup alerts, with a study coach', minutes: 60, source: SRC.asrDrill,
-        scenario: 'Practise the parts of this domain that are mostly portal work: Site Recovery replication and a DR drill, and backup alerts and reports. Use your AZ-104 Project as a coach.',
+        scenario: 'Practise the parts of this domain that are mostly portal work: Site Recovery replication and a DR drill, and backup alerts and reports. Use your SRE Learning Project as a coach.',
         task: ['In the sandbox, enable Site Recovery replication for a small test VM to a second region (follow the tutorial).', 'Run a disaster recovery drill into an isolated test VNet, then clean up the test failover. Do not run a real failover on anything that matters.', 'Check the built-in Backup Failure alert and route it to an action group; then run the coach prompts.'],
         prompts: [
-          { label: 'Drill runbook', where: 'claude.ai', text: 'In my "AZ-104 study" Project: write a short runbook for an Azure Site Recovery DR drill for vm-app-01 from westeurope to northeurope. Include prerequisites, the test failover into an isolated VNet, what to verify on the test VM, and cleanup of the test failover. Then explain in one paragraph the difference between test failover, failover, commit and re-protect. Cite the Microsoft Learn tutorial titles I should verify against.' },
+          { label: 'Drill runbook', where: 'claude.ai', text: 'In my SRE Learning Project: write a short runbook for an Azure Site Recovery DR drill for vm-app-01 from westeurope to northeurope. Include prerequisites, the test failover into an isolated VNet, what to verify on the test VM, and cleanup of the test failover. Then explain in one paragraph the difference between test failover, failover, commit and re-protect. Cite the Microsoft Learn tutorial titles I should verify against.' },
           { label: 'Quiz me', where: 'claude.ai', text: 'Quiz me with 8 AZ-104 questions on backup and recovery: Recovery Services vs Backup vault, redundancy, policies, restore options, Site Recovery recovery points (Latest, Latest processed, app-consistent), commit and re-protect, backup alerts and reports. One question at a time. When I get one wrong, explain why each option is right or wrong and name the Microsoft Learn page to read.' },
         ],
         expected: ['A test failover that ran in an isolated VNet and was cleaned up', 'The Backup Failure alert routed to an action group', 'A quiz score and a list of weak spots to review'],

@@ -316,7 +316,7 @@
     ],
     leverage: [
       { t: 'Readiness from your own data', d: 'Paste your practice results into Claude and get a status per domain, a decision, and a day-by-day plan that targets the weakest, heaviest domains.' },
-      { t: 'Explain the wrong answers', d: 'In your AZ-104 study Project, paste each practice question you got wrong and ask why the right option is right and each wrong one is wrong, then check it on Microsoft Learn.' },
+      { t: 'Explain the wrong answers', d: 'In your SRE Learning Project, paste each practice question you got wrong and ask why the right option is right and each wrong one is wrong, then check it on Microsoft Learn.' },
       { t: 'Sandbox labs for weak spots', d: 'Have Claude generate short break-and-fix labs for a sandbox subscription (for example a wrong NSG rule or UDR) so you practise diagnosis, not recall.' },
     ],
     sources: [SRC.az104cert, SRC.az104, SRC.examDemo, SRC.examExp, SRC.retake],
@@ -328,8 +328,8 @@
     steps: [
       {
         id: 'w19-t2-s1', kind: 'guide', title: 'Practice assessment and a study-coach debrief', minutes: 60, source: SRC.az104cert,
-        scenario: 'Take the free Microsoft Learn practice assessment under exam conditions, then debrief it with your AZ-104 study Project (from Week 1).',
-        task: ['Open the Azure Administrator certification page on Microsoft Learn and take the practice assessment in one sitting, timed.', 'Try the exam sandbox once so the interface holds no surprises.', 'In your "AZ-104 study" Project, run prompts 1 and 2 with every question you got wrong.'],
+        scenario: 'Take the free Microsoft Learn practice assessment under exam conditions, then debrief it with your SRE Learning Project (from Week 1).',
+        task: ['Open the Azure Administrator certification page on Microsoft Learn and take the practice assessment in one sitting, timed.', 'Try the exam sandbox once so the interface holds no surprises.', 'In your SRE Learning Project, run prompts 1 and 2 with every question you got wrong.'],
         prompts: [
           { label: '1 · Explain what I got wrong', where: 'claude.ai', text: 'Here are the AZ-104 practice questions I got wrong, with my answer and the correct one:\n[paste]\nFor each: explain the concept in 3 lines, why the correct option is right, why my option is wrong, and the title of the Microsoft Learn page I should read to confirm. Group them by exam domain.' },
           { label: '2 · Drill the pattern', where: 'claude.ai', text: 'From my wrong answers, find the 3 underlying gaps (for example "effective NSG rules when NIC and subnet NSGs both apply"). For each gap write 3 new practice questions in the AZ-104 style, then quiz me one at a time and wait for my answer.' },

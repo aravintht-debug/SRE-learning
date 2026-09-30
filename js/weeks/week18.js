@@ -302,7 +302,7 @@
       { t: 'Exam technique', d: 'Read the requirement words (minimize cost, least privilege, no downtime), eliminate options that break a constraint, and flag and move on rather than stall.', ex: '"least administrative effort"' },
     ],
     leverage: [
-      { t: 'Timed mock in a Project', d: 'Your study Project can run a full-outline mock, time-box it, score it per domain and keep the misses for a second pass.' },
+      { t: 'Timed mock in a Project', d: 'Your SRE Learning Project can run a full-outline mock, time-box it, score it per domain and keep the misses for a second pass.' },
       { t: 'Weak-area drills', d: 'Give Claude your missed skills and ask for five questions each with explanations, then a hands-on sandbox task per skill.' },
       { t: 'CLI from memory', d: 'Ask Claude for a task list, write the commands yourself, then have Claude mark them and explain each wrong flag.' },
     ],
@@ -314,9 +314,9 @@
     steps: [
       {
         id: 'w18-t2-s1', kind: 'guide', title: 'Timed mock and weak-area drill in your Claude Project', minutes: 90, source: SRC.az104,
-        scenario: 'Run a timed mock across the whole outline with your AZ-104 study Project, then drill the weak areas from Week 17 until you answer them correctly twice.',
+        scenario: 'Run a timed mock across the whole outline with your SRE Learning Project, then drill the weak areas from Week 17 until you answer them correctly twice.',
         task: [
-          'Set a 45-minute timer and run prompt 1 in your AZ-104 Project. No notes, no portal.',
+          'Set a 45-minute timer and run prompt 1 in your SRE Learning Project. No notes, no portal.',
           'Run prompt 2 with your score and misses, then prompt 3 for each weak area.',
           'Retake the free Microsoft practice assessment and compare per-domain results with Week 17.',
         ],

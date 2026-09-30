@@ -325,9 +325,9 @@
     steps: [
       {
         id: 'w17-t2-s1', kind: 'guide', title: 'Study coach session: review domains 3–5 and find weak areas', minutes: 90, source: SRC.az104,
-        scenario: 'Use your "AZ-104 study" Claude Project (from Week 1) to run a timed review of compute, networking, and monitor and maintain, then take the free Microsoft practice assessment.',
+        scenario: 'Use your SRE Learning Project (from Week 1) to run a timed review of compute, networking, and monitor and maintain, then take the free Microsoft practice assessment.',
         task: [
-          'Open your AZ-104 Project in claude.ai. Check the knowledge still holds the official skills outline.',
+          'Open your SRE Learning Project in claude.ai. Check the knowledge still holds the official skills outline.',
           'Run prompt 1 and answer without notes. Then run prompt 2 on every question you missed.',
           'Take the free practice assessment on Microsoft Learn and paste your per-domain results into prompt 3.',
         ],

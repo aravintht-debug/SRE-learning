@@ -127,7 +127,7 @@
     ],
     leverage: [
       { t: 'Score report → plan', d: 'Paste the skill-area results and your available hours into Claude and get a dated plan that targets the weak areas, with a sandbox lab for each.' },
-      { t: 'Study coach on the gaps', d: 'In your AZ-104 Project, ask for questions only on the weak areas, and for an explanation of every wrong answer against Microsoft Learn.' },
+      { t: 'Study coach on the gaps', d: 'In your SRE Learning Project, ask for questions only on the weak areas, and for an explanation of every wrong answer against Microsoft Learn.' },
       { t: 'Labs that match your work', d: 'Ask Claude to set the labs in your own estate\'s patterns (hub-spoke, private endpoints, VMSS) so revision also improves your day job.' },
     ],
     sources: [SRC.az104cert, SRC.az104, SRC.retake, SRC.ipFlow, SRC.browse],
@@ -172,8 +172,8 @@
       },
       {
         id: 'w20-t1-s2', kind: 'guide', title: 'Study coach for the retake, or plan your next certification cycle', minutes: 60, source: SRC.az104cert,
-        scenario: 'Follow the branch that applies to you. Failed: use your AZ-104 Project to drill only the weak areas and confirm readiness with the practice assessment. Passed: plan your next certification cycle and the renewal.',
-        task: ['<b>If you failed:</b> run prompts 1 and 2 in your "AZ-104 study" Project, do the labs in a sandbox, then retake the free practice assessment.', '<b>If you passed:</b> run prompt 3, agree the plan with your Service Lead, and put the renewal in your calendar.', 'Either way, update your evidence log for EV-RE-08.'],
+        scenario: 'Follow the branch that applies to you. Failed: use your SRE Learning Project to drill only the weak areas and confirm readiness with the practice assessment. Passed: plan your next certification cycle and the renewal.',
+        task: ['<b>If you failed:</b> run prompts 1 and 2 in your SRE Learning Project, do the labs in a sandbox, then retake the free practice assessment.', '<b>If you passed:</b> run prompt 3, agree the plan with your Service Lead, and put the renewal in your calendar.', 'Either way, update your evidence log for EV-RE-08.'],
         prompts: [
           { label: '1 · Drill the weak areas', where: 'claude.ai', text: 'My AZ-104 score report shows virtual networking weakest and compute weak. Quiz me with 10 AZ-104-style questions on only those areas, one at a time. After each answer, explain why each option is right or wrong and name the Microsoft Learn page to confirm. Keep a running score, and at the end list the concepts I still miss.' },
           { label: '2 · Break-and-fix lab', where: 'claude.ai', text: 'Build a 30-minute sandbox lab in resource group rg-lab: a hub-spoke VNet pair with peering, a UDR that sends spoke traffic to a non-existent next hop, and a private endpoint whose DNS zone is not linked. Give az CLI to build it, the symptoms I should see, the diagnostic commands (effective routes, IP flow verify, nslookup from a VM), the fixes, and az group delete --name rg-lab to clean up.' },
