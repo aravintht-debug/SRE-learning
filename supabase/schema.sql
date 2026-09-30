@@ -1,13 +1,27 @@
 -- SRE Learning · Supabase schema (run in the SQL editor; safe to re-run).
--- Accounts: email + password, and ONLY @swiftant.com addresses can be created (enforced below, in the database).
+-- Accounts: email + password; ONLY @swiftant.com addresses on the allowlist can be created (enforced below, in the database).
 -- Progress: one row per user. Signed-in company users can READ the team's progress; each user can only WRITE their own row.
 
--- 1. Only company email addresses can create an account.
+-- 1. Allowlist: only approved addresses can create an account.
+--    Add people in Table Editor → allowed_emails (or with the insert below). Existing accounts are not affected.
+create table if not exists public.allowed_emails (
+  email    text primary key check (email = lower(email) and email like '%@swiftant.com'),
+  added_at timestamptz not null default now()
+);
+alter table public.allowed_emails enable row level security; -- no policies: not readable or writable from the site
+revoke all on public.allowed_emails from anon, authenticated;
+
+insert into public.allowed_emails (email) values ('aravinth.t@swiftant.com') on conflict do nothing;
+
+-- 2. Only company email addresses on the allowlist can create an account.
 create or replace function public.enforce_company_email()
 returns trigger language plpgsql security definer set search_path = '' as $$
 begin
   if new.email is null or lower(new.email) not like '%@swiftant.com' then
     raise exception 'Only @swiftant.com email addresses can sign up';
+  end if;
+  if not exists (select 1 from public.allowed_emails a where a.email = lower(new.email)) then
+    raise exception 'This address is not on the SRE Learning allowlist';
   end if;
   return new;
 end;
@@ -18,7 +32,7 @@ create trigger enforce_company_email
   before insert or update of email on auth.users
   for each row execute function public.enforce_company_email();
 
--- 2. Progress table.
+-- 3. Progress table.
 create table if not exists public.progress (
   user_id    uuid primary key references auth.users (id) on delete cascade,
   email      text,

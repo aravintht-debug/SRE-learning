@@ -83,7 +83,7 @@
   const friendly = (msg) => {
     if (/invalid login credentials/i.test(msg)) return 'Wrong email or password.';
     if (/already registered|already been registered|already exists/i.test(msg)) return 'An account with this email already exists. Use Sign in.';
-    if (/database error saving new user|only @/i.test(msg)) return 'Only @' + (domain || 'company') + ' email addresses can sign up.';
+    if (/database error saving new user|only @|allowlist/i.test(msg)) return 'This email cannot sign up yet. Use your @' + (domain || 'company') + ' address, and ask the site owner to add you to the SRE Learning allowlist.';
     if (/signups not allowed|signup is disabled/i.test(msg)) return 'Sign-up is currently closed. Ask the site owner.';
     if (/password should be|weak password|at least/i.test(msg)) return 'Choose a stronger password: at least 8 characters with letters and numbers.';
     if (/email not confirmed/i.test(msg)) return 'Confirm your email first: click the link we sent to your inbox (check Junk too). Use "Resend email" if it has not arrived.';
